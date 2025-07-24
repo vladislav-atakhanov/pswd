@@ -10,5 +10,6 @@ var rootCmd = &cobra.Command{
 func Execute() error {
 	registerInit(rootCmd)
 	registerInsert(rootCmd)
+	registerShow(rootCmd)
 	return rootCmd.Execute()
 }
