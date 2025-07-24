@@ -15,14 +15,21 @@ func isFile(p string) bool {
 	}
 	return true
 }
-
-func (p *Pswd) keysDir(dir string) string {
-	return path.Join(dir, ".keys")
+func isDir(p string) bool {
+	s, err := os.Stat(p)
+	if err != nil {
+		return false
+	}
+	return s.IsDir()
 }
 
-func (p *Pswd) privateKey(dir string) string {
-	return path.Join(p.keysDir(dir), "private.asc")
+func (p *Pswd) keysDir(dirs ...string) string {
+	return path.Join(path.Join(dirs...), ".keys")
 }
-func (p *Pswd) publicKey(dir string) string {
-	return path.Join(p.keysDir(dir), "public.asc")
+
+func (p *Pswd) privateKey(dirs ...string) string {
+	return path.Join(p.keysDir(dirs...), "private.asc")
+}
+func (p *Pswd) publicKey(dirs ...string) string {
+	return path.Join(p.keysDir(dirs...), "public.asc")
 }
