@@ -3,19 +3,17 @@ package pswd
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"pswd/internal/crypto"
 )
 
 func (p *Pswd) Show(name string, master func() (string, error)) (string, error) {
-	passfile := path.Join(p.storagePath, name) + ".asc"
-	cipher, err := os.ReadFile(passfile)
+	cipher, err := os.ReadFile(p.Passfile(name))
 	if err != nil {
 		return "", err
 	}
 
-	dir := path.Join(p.storagePath, filepath.Dir(name))
+	dir := p.Path(filepath.Dir(name))
 	priv, err := p.readPrivateKey(dir)
 	if err != nil {
 		return "", err

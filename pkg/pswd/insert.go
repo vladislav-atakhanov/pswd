@@ -3,13 +3,12 @@ package pswd
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"pswd/internal/crypto"
 )
 
 func (p *Pswd) Insert(name string, password string) (string, error) {
-	dir := path.Join(p.storagePath, filepath.Dir(name))
+	dir := p.Path(filepath.Dir(name))
 	pub, err := p.readPublicKey(dir)
 	if err != nil {
 		return "", err
@@ -21,7 +20,7 @@ func (p *Pswd) Insert(name string, password string) (string, error) {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return "", err
 	}
-	passfile := path.Join(p.storagePath, name) + ".asc"
+	passfile := p.Passfile(name)
 	if err := os.WriteFile(passfile, cipher, 0644); err != nil {
 		return "", err
 	}

@@ -33,3 +33,10 @@ func (p *Pswd) privateKey(dirs ...string) string {
 func (p *Pswd) publicKey(dirs ...string) string {
 	return path.Join(p.keysDir(dirs...), "public.asc")
 }
+
+func (p *Pswd) Path(elem ...string) string {
+	return path.Join(p.storagePath, path.Join(elem...))
+}
+func (p *Pswd) Passfile(name string) string {
+	return p.Path(name) + ".asc"
+}
