@@ -1,8 +1,11 @@
 package pswd
 
 import (
+	"io/fs"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 )
 
 func isFile(p string) bool {
@@ -39,4 +42,37 @@ func (p *Pswd) Path(elem ...string) string {
 }
 func (p *Pswd) Passfile(name string) string {
 	return p.Path(name) + ".asc"
+}
+func (p *Pswd) passfileToName(pf string) string {
+	rootPath := strings.TrimPrefix(pf, p.storagePath)
+	relativePath := strings.TrimPrefix(rootPath, "/")
+	name := strings.TrimSuffix(relativePath, ".asc")
+	return name
+}
+
+type passwordGetter = func() (string, error)
+
+func walk(dir string, filter func(path string, d fs.DirEntry) bool) ([]string, error) {
+	files := []string{}
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !filter(path, d) {
+			if d.IsDir() {
+				return filepath.SkipDir // пропустить всю скрытую директорию
+			}
+			return nil // пропустить скрытый файл
+		}
+		if d.IsDir() {
+			return nil
+		}
+		files = append(files, path)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
+
 }

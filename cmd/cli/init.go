@@ -24,25 +24,31 @@ func initStorage(cmd *cobra.Command, args []string) error {
 	subfolder, _ := cmd.Flags().GetString("path")
 	if len(args) > 1 {
 		return fmt.Errorf("too many arguments")
+	}
 	p, err := pswd.NewPswd("")
 	if err != nil {
 		return err
 	}
+	inited := p.IsInit(subfolder)
+	if inited {
+		fmt.Println("reinit", subfolder)
 	}
-	var password string
-	if len(args) == 1 {
-		password = args[0]
-	} else {
-		password, err = promptPassword(true)
-		if err != nil {
-			return err
-		}
-	}
-	d, err := p.Init(subfolder, password)
+	d, names, err := p.Init(subfolder, func() (string, error) {
+		return getPassword(args, "new master password")
+	}, func() (string, error) {
+		return promptPassword(false, "old master password")
+	})
 	if err != nil {
 		return err
 	}
-	fmt.Println("New password store initialized at", d)
+	for _, n := range names {
+		fmt.Println(n, "reencrypt")
+	}
+	if inited {
+		fmt.Printf("Password store at %s reinitialized\n", d)
+	} else {
+		fmt.Println("New password store initialized at", d)
+	}
 	return nil
 }
 

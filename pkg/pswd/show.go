@@ -7,7 +7,7 @@ import (
 	"pswd/internal/crypto"
 )
 
-func (p *Pswd) Show(name string, master func() (string, error)) (string, error) {
+func (p *Pswd) Show(name string, master passwordGetter) (string, error) {
 	cipher, err := os.ReadFile(p.Passfile(name))
 	if err != nil {
 		return "", err
