@@ -3,7 +3,9 @@ package cli
 import (
 	"fmt"
 	"io"
+	"os"
 	"pswd/pkg/pswd"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -23,18 +25,9 @@ var insertCmd = &cobra.Command{
 		case 1:
 			{
 				name = args[0]
-				var inputReader io.Reader = cmd.InOrStdin()
-				c, err := io.ReadAll(inputReader)
+				password, err = readPassword()
 				if err != nil {
 					return err
-				}
-				if len(c) > 0 {
-					password = string(c)
-				} else {
-					password, err = promptPassword(true, "")
-					if err != nil {
-						return err
-					}
 				}
 			}
 		case 2:
@@ -52,6 +45,21 @@ var insertCmd = &cobra.Command{
 		fmt.Println("saved to", passfile)
 		return nil
 	},
+}
+
+func readPassword() (string, error) {
+	stat, err := os.Stdin.Stat()
+	if err != nil {
+		return "", err
+	}
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		data, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return "", err
+		}
+		return strings.TrimSpace(string(data)), nil
+	}
+	return promptPassword(true, "")
 }
 
 func registerInsert(c *cobra.Command) {
