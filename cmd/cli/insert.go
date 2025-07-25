@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"io"
 	"pswd/pkg/pswd"
 
 	"github.com/spf13/cobra"
@@ -22,9 +23,18 @@ var insertCmd = &cobra.Command{
 		case 1:
 			{
 				name = args[0]
-				password, err = promptPassword(true, "")
+				var inputReader io.Reader = cmd.InOrStdin()
+				c, err := io.ReadAll(inputReader)
 				if err != nil {
 					return err
+				}
+				if len(c) > 0 {
+					password = string(c)
+				} else {
+					password, err = promptPassword(true, "")
+					if err != nil {
+						return err
+					}
 				}
 			}
 		case 2:
