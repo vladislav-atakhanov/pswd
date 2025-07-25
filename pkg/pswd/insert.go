@@ -13,6 +13,11 @@ func (p *Pswd) Insert(name string, password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	return p.InsertWithKey(pub, name, password)
+}
+
+func (p *Pswd) InsertWithKey(pub []byte, name string, password string) (string, error) {
+	dir := p.Path(filepath.Dir(name))
 	cipher, err := crypto.Encrypt([]byte(password), pub)
 	if err != nil {
 		return "", err
