@@ -3,9 +3,12 @@ package crypto
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
+	"io"
 
 	"golang.org/x/crypto/curve25519"
+	"golang.org/x/crypto/hkdf"
 )
 
 func GenerateKeys(password string) (priv []byte, pub []byte, err error) {
@@ -38,7 +41,14 @@ func Encrypt(plaintext []byte, pub []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid recipient public key")
 	}
-	aesKey := sharedSecret[:32]
+	salt := make([]byte, 16)
+	rand.Read(salt)
+
+	aesKey, err := makeAesKey(sharedSecret, salt)
+	if err != nil {
+		return nil, fmt.Errorf("make aes key: %w", err)
+	}
+
 	ciphertext, nonce, err := encryptSync(plaintext, aesKey)
 	if err != nil {
 		return nil, err
@@ -46,19 +56,26 @@ func Encrypt(plaintext []byte, pub []byte) ([]byte, error) {
 
 	buf := bytes.Buffer{}
 	buf.Write(ephPub)
+	buf.Write(salt)
 	buf.Write(nonce)
 	buf.Write(ciphertext)
 	return buf.Bytes(), nil
 }
 
 func Decrypt(encData []byte, privateKey []byte, password string) ([]byte, error) {
-	if len(encData) < 32+12 {
-		return nil, fmt.Errorf("encrypted data too short")
+	const (
+		ephPubSize = 32
+		saltSize   = 16
+		nonceSize  = 12
+	)
+	if len(encData) < ephPubSize+saltSize+nonceSize {
+		return nil, fmt.Errorf("invalid data")
 	}
 
-	ephPub := encData[:32]
-	nonce := encData[32 : 32+12]
-	ciphertext := encData[32+12:]
+	ephPub := encData[:ephPubSize]
+	salt := encData[ephPubSize : ephPubSize+saltSize]
+	nonce := encData[ephPubSize+saltSize : ephPubSize+saltSize+nonceSize]
+	ciphertext := encData[ephPubSize+saltSize+nonceSize:]
 
 	priv, err := decryptPrivateKey(privateKey, password)
 	if err != nil {
@@ -69,6 +86,18 @@ func Decrypt(encData []byte, privateKey []byte, password string) ([]byte, error)
 	if err != nil {
 		return nil, fmt.Errorf("invalid ephemeral public key")
 	}
-	aesKey := sharedSecret[:32]
+	aesKey, err := makeAesKey(sharedSecret, salt)
+	if err != nil {
+		return nil, fmt.Errorf("make aes key: %w", err)
+	}
 	return decryptSync(ciphertext, nonce, aesKey)
+}
+
+func makeAesKey(sharedSecret []byte, salt []byte) ([]byte, error) {
+	h := hkdf.New(sha256.New, sharedSecret, salt, []byte("ecc-encryption"))
+	aesKey := make([]byte, 32) // AES-256
+	if _, err := io.ReadFull(h, aesKey); err != nil {
+		return nil, err
+	}
+	return aesKey, nil
 }
