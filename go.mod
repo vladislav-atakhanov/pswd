@@ -7,7 +7,10 @@ require (
 	golang.org/x/crypto v0.40.0
 )
 
-require golang.org/x/sys v0.34.0 // indirect
+require (
+	github.com/sethvargo/go-password v0.3.1 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+)
 
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
