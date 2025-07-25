@@ -42,7 +42,7 @@ func registerShow(c *cobra.Command) {
 func withError(f func(cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		if err := f(cmd, args); err != nil {
-			fmt.Println(err)
+			fmt.Println("Error:", err)
 		}
 	}
 }

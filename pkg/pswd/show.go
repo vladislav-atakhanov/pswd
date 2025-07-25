@@ -10,7 +10,7 @@ import (
 func (p *Pswd) Show(name string, master passwordGetter) (string, error) {
 	cipher, err := os.ReadFile(p.Passfile(name))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%s is not in the %s", name, filepath.Base(p.storagePath))
 	}
 
 	dir := p.Path(filepath.Dir(name))
