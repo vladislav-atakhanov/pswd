@@ -3,7 +3,9 @@ package cli
 import (
 	"fmt"
 	"pswd/pkg/pswd"
+	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 )
 
@@ -11,10 +13,6 @@ var showCmd = &cobra.Command{
 	Use:   "show passname",
 	Short: "show password by name",
 	Run: withError(func(cmd *cobra.Command, args []string) error {
-		p, err := pswd.NewPswd("")
-		if err != nil {
-			return err
-		}
 		var name string
 		switch len(args) {
 		case 0:
@@ -24,19 +22,38 @@ var showCmd = &cobra.Command{
 		default:
 			return fmt.Errorf("too many arguments")
 		}
+		clip, _ := cmd.Flags().GetBool("clip")
+		p, err := pswd.NewPswd("")
+		if err != nil {
+			return err
+		}
 		data, err := p.Show(name, func() (string, error) {
 			return promptPassword(false, "")
 		})
 		if err != nil {
 			return err
 		}
-		fmt.Println(data)
+		if clip {
+			password := strings.TrimSpace(firstLine(data))
+			if err := clipboard.WriteAll(password); err != nil {
+				return err
+			}
+			fmt.Printf("Copied %s to clipboard\n", name)
+		} else {
+			fmt.Println(data)
+		}
 		return nil
 	}),
 }
 
+func firstLine(s string) string {
+	lines := strings.SplitN(s, "\n", 2)
+	return lines[0]
+}
+
 func registerShow(c *cobra.Command) {
 	c.AddCommand(showCmd)
+	showCmd.Flags().BoolP("clip", "c", false, "clip")
 }
 
 func withError(f func(cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) {
