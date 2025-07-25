@@ -2,11 +2,11 @@ package cli
 
 import (
 	"fmt"
-	"pswd/pkg/pswd"
 	"strings"
 
 	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
+	"github.com/vladislav-atakhanov/pswd/pkg/pswd"
 )
 
 var showCmd = &cobra.Command{
@@ -53,7 +53,7 @@ func firstLine(s string) string {
 
 func registerShow(c *cobra.Command) {
 	c.AddCommand(showCmd)
-	showCmd.Flags().BoolP("clip", "c", false, "clip")
+	showCmd.Flags().BoolP("clip", "c", false, "copy first line to clipboard")
 }
 
 func withError(f func(cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) {

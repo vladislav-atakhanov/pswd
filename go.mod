@@ -1,4 +1,4 @@
-module pswd
+module github.com/vladislav-atakhanov/pswd
 
 go 1.24.2
 

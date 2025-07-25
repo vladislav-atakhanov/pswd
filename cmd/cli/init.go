@@ -3,9 +3,9 @@ package cli
 import (
 	"fmt"
 	"os"
-	"pswd/pkg/pswd"
 
 	"github.com/spf13/cobra"
+	"github.com/vladislav-atakhanov/pswd/pkg/pswd"
 	"golang.org/x/term"
 )
 

@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"pswd/internal/crypto"
+
+	"github.com/vladislav-atakhanov/pswd/internal/crypto"
 )
 
 func (p *Pswd) Show(name string, master passwordGetter) (string, error) {

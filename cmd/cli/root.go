@@ -4,7 +4,7 @@ import "github.com/spf13/cobra"
 
 var rootCmd = &cobra.Command{
 	Use:   "pswd",
-	Short: "pswd is CLI interface for PSWD",
+	Short: "pswd is a password manager inspired pass",
 }
 
 func Execute() error {

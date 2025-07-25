@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/vladislav-atakhanov/pswd/cmd/cli"
 	"os"
-	"pswd/cmd/cli"
 )
 
 func main() {

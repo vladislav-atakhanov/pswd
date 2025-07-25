@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"pswd/internal/crypto"
 	"strings"
+
+	"github.com/vladislav-atakhanov/pswd/internal/crypto"
 )
 
 func (p *Pswd) IsInit(d string) bool {

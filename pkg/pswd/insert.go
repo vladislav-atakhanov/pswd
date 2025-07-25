@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"pswd/internal/crypto"
+
+	"github.com/vladislav-atakhanov/pswd/internal/crypto"
 )
 
 func (p *Pswd) Insert(name string, password string) (string, error) {

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"pswd/pkg/pswd"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/vladislav-atakhanov/pswd/pkg/pswd"
 )
 
 var insertCmd = &cobra.Command{
