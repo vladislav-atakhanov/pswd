@@ -22,12 +22,12 @@ var initCmd = &cobra.Command{
 
 func initStorage(cmd *cobra.Command, args []string) error {
 	subfolder, _ := cmd.Flags().GetString("path")
+	if len(args) > 1 {
+		return fmt.Errorf("too many arguments")
 	p, err := pswd.NewPswd("")
 	if err != nil {
 		return err
 	}
-	if len(args) > 1 {
-		return fmt.Errorf("too many arguments")
 	}
 	var password string
 	if len(args) == 1 {
@@ -46,8 +46,18 @@ func initStorage(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func promptPassword(confirm bool) (string, error) {
-	fmt.Print("Enter password: ")
+func getPassword(args []string, label string) (string, error) {
+	if len(args) == 1 {
+		return args[0], nil
+	}
+	return promptPassword(true, label)
+}
+
+func promptPassword(confirm bool, label string) (string, error) {
+	if label == "" {
+		label = "password"
+	}
+	fmt.Printf("Enter %s: ", label)
 	passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 	fmt.Println()
 	if err != nil {
@@ -55,7 +65,7 @@ func promptPassword(confirm bool) (string, error) {
 	}
 
 	if confirm {
-		fmt.Print("Repeat password: ")
+		fmt.Printf("Repeat %s: ", label)
 		confirmBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 		fmt.Println()
 		if err != nil {

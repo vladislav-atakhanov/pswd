@@ -22,7 +22,7 @@ var insertCmd = &cobra.Command{
 		case 1:
 			{
 				name = args[0]
-				password, err = promptPassword(true)
+				password, err = promptPassword(true, "")
 				if err != nil {
 					return err
 				}

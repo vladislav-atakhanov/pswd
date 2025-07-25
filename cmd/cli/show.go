@@ -8,8 +8,7 @@ import (
 )
 
 var showCmd = &cobra.Command{
-	Use: "show passname",
-
+	Use:   "show passname",
 	Short: "show password by name",
 	Run: withError(func(cmd *cobra.Command, args []string) error {
 		p, err := pswd.NewPswd("")
@@ -26,7 +25,7 @@ var showCmd = &cobra.Command{
 			return fmt.Errorf("too many arguments")
 		}
 		data, err := p.Show(name, func() (string, error) {
-			return promptPassword(false)
+			return promptPassword(false, "")
 		})
 		if err != nil {
 			return err
