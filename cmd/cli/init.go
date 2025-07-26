@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/vladislav-atakhanov/pswd/pkg/pswd"
+	"github.com/vladislav-atakhanov/pswd"
 )
 
 func registerInit(c *cobra.Command) {

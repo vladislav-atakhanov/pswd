@@ -9,7 +9,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/sethvargo/go-password/password"
 	"github.com/spf13/cobra"
-	"github.com/vladislav-atakhanov/pswd/pkg/pswd"
+	"github.com/vladislav-atakhanov/pswd"
 )
 
 const defaultLength = 25

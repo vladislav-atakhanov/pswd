@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/vladislav-atakhanov/pswd/pkg/pswd"
+	"github.com/vladislav-atakhanov/pswd"
 )
 
 var insertCmd = &cobra.Command{
