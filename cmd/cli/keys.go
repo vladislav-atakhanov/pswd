@@ -23,7 +23,7 @@ var genereteKeysCmd = &cobra.Command{
 			if err := check(id); err != nil {
 				return err
 			}
-			keyLabel := green(id)
+			keyLabel := keyColor(id)
 			password, err = promptPassword(
 				fmt.Sprintf("Enter password for %s key: ", keyLabel),
 				fmt.Sprintf("Repeat password for %s key: ", keyLabel),
@@ -48,14 +48,14 @@ var genereteKeysCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Println("New keys generated and saved to", green(d))
+		fmt.Println("New keys generated and saved to", dirColor(d))
 		return nil
 	},
 }
 
 func check(id string) error {
 	if keys.Has(id) {
-		return fmt.Errorf("Key pair %s already exists", green(id))
+		return fmt.Errorf("Key pair %s already exists", keyColor(id))
 	}
 	return nil
 }

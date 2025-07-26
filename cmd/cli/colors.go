@@ -1,8 +1,14 @@
 package cli
 
-import "strings"
+import (
+	"os"
+	"strings"
+)
 
 func color(code string, elem ...string) string {
+	if _, isNoColor := os.LookupEnv("NO_COLOR"); isNoColor {
+		return strings.Join(elem, "")
+	}
 	return code + strings.Join(elem, "") + "\033[0m"
 }
 
@@ -19,3 +25,13 @@ func black(elem ...string) string   { return color("\033[30m", elem...) }
 func reset(elem ...string) string     { return color("\033[0m", elem...) }
 func bold(elem ...string) string      { return color("\033[1m", elem...) }
 func underline(elem ...string) string { return color("\033[4m", elem...) }
+
+var (
+	keyColor    = green
+	errorColor  = red
+	dirColor    = blue
+	dataColor   = yellow
+	passColor   = cyan
+	prefixColor = gray
+	magicColor  = magenta
+)

@@ -33,7 +33,7 @@ var initCmd = &cobra.Command{
 		names := make(chan string)
 		go func() {
 			for n := range names {
-				fmt.Println("Password", n, "reencrypt")
+				fmt.Println("Password", passColor(n), "reencrypt")
 			}
 		}()
 		d, reinit, err := p.Init(subfolder, keyId, enterMasterPassword, names)
@@ -41,9 +41,9 @@ var initCmd = &cobra.Command{
 			return err
 		}
 		if reinit {
-			fmt.Printf("Password store at %s reinitialized\n", d)
+			fmt.Printf("Password store at %s reinitialized\n", dirColor(d))
 		} else {
-			fmt.Println("New password store initialized at", d)
+			fmt.Println("New password store initialized at", dirColor(d))
 		}
 		return nil
 	},

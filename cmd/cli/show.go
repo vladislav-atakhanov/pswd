@@ -46,16 +46,16 @@ var showCmd = &cobra.Command{
 			if err := clipboard.WriteAll(password); err != nil {
 				return err
 			}
-			fmt.Printf("Copied %s to clipboard\n", name)
+			fmt.Printf("Copied %s to clipboard\n", passColor(name))
 		} else {
-			fmt.Println(yellow(data))
+			fmt.Println(dataColor(data))
 		}
 		return nil
 	}),
 }
 
 func enterMasterPassword(key string) (string, error) {
-	return promptPassword(fmt.Sprintf("Enter password for %s key: ", green(key)), "")
+	return promptPassword(fmt.Sprintf("Enter password for %s key: ", keyColor(key)), "")
 }
 
 func showTree(name string) error {
@@ -67,7 +67,7 @@ func showTree(name string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(blue(tree.Name))
+	fmt.Println(dirColor(tree.Name))
 	for i, child := range tree.Children {
 		printTree(child, "", i == len(tree.Children)-1)
 	}
@@ -81,10 +81,10 @@ func printTree(node *pswd.TreeNode, prefix string, isLast bool) {
 	}
 	color := reset
 	if node.IsDir {
-		color = blue
+		color = dirColor
 	}
 
-	fmt.Print(gray(prefix, branch))
+	fmt.Print(prefixColor(prefix, branch))
 	fmt.Println(color(node.Name))
 
 	newPrefix := prefix
@@ -98,6 +98,7 @@ func printTree(node *pswd.TreeNode, prefix string, isLast bool) {
 		printTree(child, newPrefix, i == len(node.Children)-1)
 	}
 }
+
 func firstLine(s string) string {
 	lines := strings.SplitN(s, "\n", 2)
 	return lines[0]
