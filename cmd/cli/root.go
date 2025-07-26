@@ -12,5 +12,6 @@ func Execute() error {
 	registerInsert(rootCmd)
 	registerShow(rootCmd)
 	registerGenerate(rootCmd)
+	registerGenerateKeys(rootCmd)
 	return rootCmd.Execute()
 }
