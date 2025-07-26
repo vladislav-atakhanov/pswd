@@ -36,6 +36,9 @@ func (p *Pswd) Init(name string, id string, master func(key string) (string, err
 		return "", false, err
 	}
 	if len(files) == 0 {
+		if err := writeKeyId(keyFile(dir), id); err != nil {
+			return "", true, fmt.Errorf("write key id: %w", err)
+		}
 		return dir, false, nil
 	}
 
@@ -87,8 +90,12 @@ func (p *Pswd) Init(name string, id string, master func(key string) (string, err
 			return "", true, fmt.Errorf("delete key: %w", err)
 		}
 	}
-	if err := os.WriteFile(dst, []byte(id), 0644); err != nil {
+	if err := writeKeyId(dst, id); err != nil {
 		return "", true, fmt.Errorf("write key id: %w", err)
 	}
 	return dir, true, nil
+}
+
+func writeKeyId(dst string, id string) error {
+	return os.WriteFile(dst, []byte(id), 0644)
 }
