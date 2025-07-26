@@ -36,9 +36,7 @@ var initCmd = &cobra.Command{
 				fmt.Println("Password", n, "reencrypt")
 			}
 		}()
-		d, reinit, err := p.Init(subfolder, keyId, func(key string) (string, error) {
-			return promptPassword(fmt.Sprintf("Enter password for %s key: ", key), "")
-		}, names)
+		d, reinit, err := p.Init(subfolder, keyId, enterMasterPassword, names)
 		if err != nil {
 			return err
 		}

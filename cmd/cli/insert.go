@@ -43,7 +43,7 @@ var insertCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Println("saved to", passfile)
+		fmt.Println("saved to", blue(passfile))
 		return nil
 	},
 }

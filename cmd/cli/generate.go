@@ -29,7 +29,7 @@ var generateCmd = &cobra.Command{
 			name = args[0]
 			l, err := strconv.Atoi(args[1])
 			if err != nil {
-				return fmt.Errorf("Length must be an integer. Passed %s", args[1])
+				return fmt.Errorf("Length must be an integer. Passed %s", red(args[1]))
 			}
 			length = l
 		default:
@@ -52,9 +52,9 @@ var generateCmd = &cobra.Command{
 			if err := clipboard.WriteAll(password); err != nil {
 				return err
 			}
-			fmt.Printf("Password saved as %s and copied to clipboard\n", name)
+			fmt.Printf("Password saved as %s and copied to clipboard\n", blue(name))
 		} else {
-			fmt.Printf("Password saved as %s and here:\n%s\n", name, password)
+			fmt.Printf("Password saved as %s and here:\n%s\n", blue(name), yellow(password))
 		}
 		return nil
 	},

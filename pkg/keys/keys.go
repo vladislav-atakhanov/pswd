@@ -11,28 +11,27 @@ import (
 func Generate(password string) (priv []byte, pub []byte, err error) {
 	return crypto.GenerateKeys(password)
 }
+func Has(id string) bool {
+	s, err := os.Stat(keyPath(id, "private.asc"))
+	if err != nil {
+		return false
+	}
+	return !s.IsDir()
+}
 
-func Save(id string, priv, pub []byte) error {
-	if err := os.MkdirAll(keyPath(id), 0700); err != nil {
-		return fmt.Errorf("create keys dir: %w", err)
+func Save(id string, priv, pub []byte) (string, error) {
+	dir := keyPath(id)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return "", fmt.Errorf("create keys dir: %w", err)
 	}
 	if err := os.WriteFile(keyPath(id, "private.asc"), priv, 0644); err != nil {
-		return fmt.Errorf("save private key: %w", err)
+		return "", fmt.Errorf("save private key: %w", err)
 	}
 	if err := os.WriteFile(keyPath(id, "public.asc"), pub, 0644); err != nil {
-		return fmt.Errorf("save public key: %w", err)
+		return "", fmt.Errorf("save public key: %w", err)
 	}
-	return nil
+	return dir, nil
 }
-
-func keyPath(names ...string) string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-	return path.Join(append([]string{home, ".keys"}, names...)...)
-}
-
 func Encrypt(id string, plaintext []byte) ([]byte, error) {
 	pub, err := os.ReadFile(keyPath(id, "public.asc"))
 	if err != nil {
@@ -53,4 +52,12 @@ func DecryptLazy(id string, password func() (string, error), encData []byte) ([]
 		return nil, err
 	}
 	return crypto.Decrypt(encData, priv, p)
+}
+
+func keyPath(names ...string) string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	return path.Join(append([]string{home, ".keys"}, names...)...)
 }

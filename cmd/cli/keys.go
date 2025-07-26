@@ -13,22 +13,29 @@ var genereteKeysCmd = &cobra.Command{
 	Use:   "gen-key id [password]",
 	Short: "generate new key-pair and save to ~/.keys",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var keyId, password string
+		var id, password string
 		var err error
 		switch len(args) {
 		case 0:
 			return PassArgumentsErr("id")
 		case 1:
-			keyId = args[0]
+			id = args[0]
+			if err := check(id); err != nil {
+				return err
+			}
+			keyLabel := green(id)
 			password, err = promptPassword(
-				fmt.Sprintf("Enter password for %s key: ", keyId),
-				fmt.Sprintf("Repeat password for %s key: ", keyId),
+				fmt.Sprintf("Enter password for %s key: ", keyLabel),
+				fmt.Sprintf("Repeat password for %s key: ", keyLabel),
 			)
 			if err != nil {
 				return err
 			}
 		case 2:
-			keyId = args[0]
+			id = args[0]
+			if err := check(id); err != nil {
+				return err
+			}
 			password = args[1]
 		default:
 			return TooManyArgumentsErr()
@@ -37,12 +44,20 @@ var genereteKeysCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		if err := keys.Save(keyId, priv, pub); err != nil {
+		d, err := keys.Save(id, priv, pub)
+		if err != nil {
 			return err
 		}
-		fmt.Println("New keys generated and saved as", keyId)
+		fmt.Println("New keys generated and saved to", green(d))
 		return nil
 	},
+}
+
+func check(id string) error {
+	if keys.Has(id) {
+		return fmt.Errorf("Key pair %s already exists", green(id))
+	}
+	return nil
 }
 
 func promptPassword(label, confirmLabel string) (string, error) {

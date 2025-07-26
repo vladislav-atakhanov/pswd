@@ -37,9 +37,7 @@ var showCmd = &cobra.Command{
 		case pswd.PassUnknown:
 			return showTree(name)
 		}
-		data, err := p.ShowLazy(name, func(key string) (string, error) {
-			return promptPassword(fmt.Sprintf("Enter password for %s key: ", key), "")
-		})
+		data, err := p.ShowLazy(name, enterMasterPassword)
 		if err != nil {
 			return err
 		}
@@ -50,10 +48,14 @@ var showCmd = &cobra.Command{
 			}
 			fmt.Printf("Copied %s to clipboard\n", name)
 		} else {
-			fmt.Println(data)
+			fmt.Println(yellow(data))
 		}
 		return nil
 	}),
+}
+
+func enterMasterPassword(key string) (string, error) {
+	return promptPassword(fmt.Sprintf("Enter password for %s key: ", green(key)), "")
 }
 
 func showTree(name string) error {
@@ -65,7 +67,7 @@ func showTree(name string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(tree.Name)
+	fmt.Println(blue(tree.Name))
 	for i, child := range tree.Children {
 		printTree(child, "", i == len(tree.Children)-1)
 	}
@@ -77,8 +79,13 @@ func printTree(node *pswd.TreeNode, prefix string, isLast bool) {
 	if isLast {
 		branch = "`-- "
 	}
+	color := reset
+	if node.IsDir {
+		color = blue
+	}
 
-	fmt.Println(prefix + branch + node.Name)
+	fmt.Print(gray(prefix, branch))
+	fmt.Println(color(node.Name))
 
 	newPrefix := prefix
 	if isLast {
@@ -91,7 +98,6 @@ func printTree(node *pswd.TreeNode, prefix string, isLast bool) {
 		printTree(child, newPrefix, i == len(node.Children)-1)
 	}
 }
-
 func firstLine(s string) string {
 	lines := strings.SplitN(s, "\n", 2)
 	return lines[0]
