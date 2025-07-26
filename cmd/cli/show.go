@@ -10,25 +10,25 @@ import (
 )
 
 var showCmd = &cobra.Command{
-	Use:   "show passname",
+	Use:   "show name",
 	Short: "show password by name",
 	Run: withError(func(cmd *cobra.Command, args []string) error {
 		var name string
 		switch len(args) {
 		case 0:
-			return fmt.Errorf("recieve name")
+			return PassArgumentsErr("name")
 		case 1:
 			name = args[0]
 		default:
-			return fmt.Errorf("too many arguments")
+			return TooManyArgumentsErr()
 		}
 		clip, _ := cmd.Flags().GetBool("clip")
 		p, err := pswd.NewPswd("")
 		if err != nil {
 			return err
 		}
-		data, err := p.Show(name, func() (string, error) {
-			return promptPassword(false, "")
+		data, err := p.ShowLazy(name, func(key string) (string, error) {
+			return promptPassword(fmt.Sprintf("Enter password for %s key: ", key), "")
 		})
 		if err != nil {
 			return err

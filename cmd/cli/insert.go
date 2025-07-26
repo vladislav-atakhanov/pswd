@@ -14,14 +14,11 @@ var insertCmd = &cobra.Command{
 	Use:   "insert name [password]",
 	Short: "Insert new password to storage",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		p, err := pswd.NewPswd("")
-		if err != nil {
-			return err
-		}
 		var password, name string
+		var err error
 		switch len(args) {
 		case 0:
-			return fmt.Errorf("recieve name")
+			return PassArgumentsErr("name")
 		case 1:
 			{
 				name = args[0]
@@ -36,7 +33,11 @@ var insertCmd = &cobra.Command{
 				password = args[1]
 			}
 		default:
-			return fmt.Errorf("too many arguments")
+			return TooManyArgumentsErr()
+		}
+		p, err := pswd.NewPswd("")
+		if err != nil {
+			return err
 		}
 		passfile, err := p.Insert(name, password)
 		if err != nil {
@@ -59,7 +60,7 @@ func readPassword() (string, error) {
 		}
 		return strings.TrimSpace(string(data)), nil
 	}
-	return promptPassword(true, "")
+	return promptPassword("Enter password: ", "Repeat password: ")
 }
 
 func registerInsert(c *cobra.Command) {

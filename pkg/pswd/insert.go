@@ -1,25 +1,23 @@
 package pswd
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/vladislav-atakhanov/pswd/internal/crypto"
+	"github.com/vladislav-atakhanov/pswd/pkg/keys"
 )
 
 func (p *Pswd) Insert(name string, password string) (string, error) {
-	dir := p.Path(filepath.Dir(name))
-	pub, err := p.readPublicKey(dir)
+	id, err := p.getKeyId(name)
 	if err != nil {
 		return "", err
 	}
-	return p.InsertWithKey(pub, name, password)
+	return p.InsertWithKey(id, name, password)
 }
 
-func (p *Pswd) InsertWithKey(pub []byte, name string, password string) (string, error) {
+func (p *Pswd) InsertWithKey(id string, name string, password string) (string, error) {
 	dir := p.Path(filepath.Dir(name))
-	cipher, err := crypto.Encrypt([]byte(password), pub)
+	cipher, err := keys.Encrypt(id, []byte(password))
 	if err != nil {
 		return "", err
 	}
@@ -31,19 +29,4 @@ func (p *Pswd) InsertWithKey(pub []byte, name string, password string) (string, 
 		return "", err
 	}
 	return passfile, nil
-}
-
-func (p *Pswd) readPublicKey(dir string) ([]byte, error) {
-	for {
-		pth := p.keysDir(dir)
-		if isDir(pth) {
-			if c, err := os.ReadFile(p.publicKey(dir)); err == nil {
-				return c, nil
-			}
-		}
-		dir = filepath.Dir(dir)
-		if dir == filepath.Dir(p.storagePath) {
-			return nil, fmt.Errorf("keys not found")
-		}
-	}
 }

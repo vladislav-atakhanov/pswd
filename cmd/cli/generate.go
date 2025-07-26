@@ -22,7 +22,7 @@ var generateCmd = &cobra.Command{
 		length := defaultLength
 		switch len(args) {
 		case 0:
-			return fmt.Errorf("recieve name")
+			return PassArgumentsErr("name")
 		case 1:
 			name = args[0]
 		case 2:
@@ -33,7 +33,7 @@ var generateCmd = &cobra.Command{
 			}
 			length = l
 		default:
-			return fmt.Errorf("too many arguments")
+			return TooManyArgumentsErr()
 		}
 		clip, _ := cmd.Flags().GetBool("clip")
 		noSymbols, _ := cmd.Flags().GetBool("no-symbols")

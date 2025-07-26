@@ -71,11 +71,10 @@ No external GPG or OpenSSL binaries are needed — all crypto is handled nativel
 
 Planned features and improvements:
 
-- [ ] 🔢 Built-in password generator
+- [x] 🔢 Built-in password generator
 - [ ] 🔐 Password editing and deletion
 - [ ] 🌳 Git integration
 - [ ] 📥 Import from other password managers
-- [ ] 📱 Mobile-friendly frontend (e.g. Termux or TUI)
 - [ ] 🔍 Full-text search
 - [ ] 🧪 Unit + integration test coverage
 - [x] 🗂️ Hierarchical folder-like structure for entries

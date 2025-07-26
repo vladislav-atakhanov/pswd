@@ -1,41 +1,13 @@
 package pswd
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 )
-
-func isFile(p string) bool {
-	s, err := os.Stat(p)
-	if err != nil {
-		return false
-	}
-	if s.IsDir() {
-		return false
-	}
-	return true
-}
-func isDir(p string) bool {
-	s, err := os.Stat(p)
-	if err != nil {
-		return false
-	}
-	return s.IsDir()
-}
-
-func (p *Pswd) keysDir(dirs ...string) string {
-	return path.Join(path.Join(dirs...), ".keys")
-}
-
-func (p *Pswd) privateKey(dirs ...string) string {
-	return path.Join(p.keysDir(dirs...), "private.asc")
-}
-func (p *Pswd) publicKey(dirs ...string) string {
-	return path.Join(p.keysDir(dirs...), "public.asc")
-}
 
 func (p *Pswd) Path(elem ...string) string {
 	return path.Join(p.storagePath, path.Join(elem...))
@@ -49,8 +21,6 @@ func (p *Pswd) passfileToName(pf string) string {
 	name := strings.TrimSuffix(relativePath, ".asc")
 	return name
 }
-
-type passwordGetter = func() (string, error)
 
 func walk(dir string, filter func(path string, d fs.DirEntry) bool) ([]string, error) {
 	files := []string{}
@@ -74,5 +44,37 @@ func walk(dir string, filter func(path string, d fs.DirEntry) bool) ([]string, e
 		return nil, err
 	}
 	return files, nil
+}
 
+func (p *Pswd) getKeyIdPath(passname string) (string, error) {
+	parent := filepath.Dir(p.storagePath)
+	for dir := p.Path(filepath.Dir(passname)); dir != parent; dir = filepath.Dir(dir) {
+		if p.isInit(p.passfileToName(dir)) {
+			return keyFile(dir), nil
+		}
+	}
+	return "", fmt.Errorf("key not found")
+}
+func (p *Pswd) isInit(name string) bool {
+	kf := keyFile(p.storagePath, name)
+	s, err := os.Stat(kf)
+	if err != nil {
+		return false
+	}
+	return !s.IsDir()
+}
+func (p *Pswd) getKeyIdWithPath(passname string) (string, string, error) {
+	kf, err := p.getKeyIdPath(passname)
+	if err != nil {
+		return "", "", err
+	}
+	content, err := os.ReadFile(kf)
+	if err != nil {
+		return "", "", err
+	}
+	return strings.TrimSpace(string(content)), kf, nil
+}
+func (p *Pswd) getKeyId(passname string) (string, error) {
+	id, _, err := p.getKeyIdWithPath(passname)
+	return id, err
 }

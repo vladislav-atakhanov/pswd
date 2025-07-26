@@ -4,56 +4,23 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"strings"
-
-	"github.com/vladislav-atakhanov/pswd/internal/crypto"
 )
 
-func (p *Pswd) IsInit(d string) bool {
-	if isFile(p.privateKey(p.storagePath, d)) && isFile(p.publicKey(p.storagePath, d)) {
-		return true
-	}
-	return false
-}
-func (p *Pswd) Init(dir string, new, old func() (string, error)) (string, []string, error) {
-	if !p.IsInit(dir) {
-		d, err := p.init(dir, new)
-		if err != nil {
-			return "", nil, err
-		}
-		return d, nil, nil
-	}
-	return p.reinit(dir, new, old)
+func keyFile(dir ...string) string {
+	return path.Join(append(dir, ".key-id")...)
 }
 
-func (p *Pswd) init(dir string, master func() (string, error)) (string, error) {
-	if p.IsInit(dir) {
-		return "", fmt.Errorf("keys are exist")
+func (p *Pswd) Init(name string, id string, master func(key string) (string, error), names chan string) (string, bool, error) {
+	if names != nil {
+		defer close(names)
 	}
-	d := p.Path(dir)
-	if err := os.MkdirAll(p.keysDir(d), 0700); err != nil {
-		return "", fmt.Errorf("create keys dir: %w", err)
+	dir := p.Path(name)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return "", false, fmt.Errorf("create passdir: %w", err)
 	}
-	password, err := master()
-	if err != nil {
-		return "", err
-	}
-	priv, pub, err := crypto.GenerateKeys(password)
-	if err != nil {
-		return "", fmt.Errorf("generate keys: %w", err)
-	}
-	if err := p.saveKeys(d, priv, pub); err != nil {
-		return "", err
-	}
-	return d, nil
-}
-
-func (p *Pswd) reinit(dir string, new, old passwordGetter) (string, []string, error) {
-	d := p.Path(dir)
-
-	var priv, pub []byte
-
-	files, err := walk(d, func(fp string, de fs.DirEntry) bool {
+	files, err := walk(dir, func(fp string, de fs.DirEntry) bool {
 		if fp == p.storagePath {
 			return true
 		}
@@ -66,52 +33,62 @@ func (p *Pswd) reinit(dir string, new, old passwordGetter) (string, []string, er
 		return strings.HasSuffix(de.Name(), ".asc")
 	})
 	if err != nil {
-		fmt.Println("Ошибка:", err)
+		return "", false, err
 	}
-	var oldPass string
+	if len(files) == 0 {
+		return dir, false, nil
+	}
 
-	names := []string{}
+	passwords := map[string]string{}
+	oldKeys := map[string]struct{}{}
 	for _, f := range files {
 		name := p.passfileToName(f)
-		if oldPass == "" {
-			oldPass, err = old()
-			if err != nil {
-				return "", nil, err
-			}
-		}
-		password, err := p.Show(name, func() (string, error) { return oldPass, nil })
+		oldId, oldPath, err := p.getKeyIdWithPath(name)
 		if err != nil {
-			return "", nil, err
+			return "", false, fmt.Errorf("key for %s not found", name)
 		}
-		if priv == nil {
-			newPass, err := new()
-			if err != nil {
-				return "", nil, err
-			}
-			priv, pub, err = crypto.GenerateKeys(newPass)
-			if err != nil {
-				return "", nil, fmt.Errorf("generate keys: %w", err)
-			}
+		if oldId == id {
+			oldKeys[oldPath] = struct{}{}
+			continue
 		}
-		_, err = p.InsertWithKey(pub, name, password)
+		password, err := p.ShowLazy(name, func(key string) (string, error) {
+			if keypass, ok := passwords[key]; ok {
+				return keypass, nil
+			}
+			keypass, err := master(key)
+			if err != nil {
+				return "", err
+			}
+			passwords[key] = keypass
+			return keypass, nil
+		})
 		if err != nil {
-			return "", nil, err
+			return "", true, err
 		}
-		names = append(names, name)
+		if _, err := p.InsertWithKey(id, name, password); err != nil {
+			return "", true, err
+		}
+		oldKeys[oldPath] = struct{}{}
+		if names != nil {
+			go func(name string) {
+				names <- name
+			}(name)
+		}
 	}
-
-	if err := p.saveKeys(d, priv, pub); err != nil {
-		return "", nil, err
+	dst := keyFile(dir)
+	for p := range oldKeys {
+		if p == dst {
+			continue
+		}
+		if strings.HasPrefix(dir, path.Dir(p)) {
+			continue
+		}
+		if err := os.Remove(p); err != nil {
+			return "", true, fmt.Errorf("delete key: %w", err)
+		}
 	}
-	return d, names, nil
-}
-
-func (p *Pswd) saveKeys(d string, priv, pub []byte) error {
-	if err := os.WriteFile(p.privateKey(d), priv, 0644); err != nil {
-		return fmt.Errorf("save private key: %w", err)
+	if err := os.WriteFile(dst, []byte(id), 0644); err != nil {
+		return "", true, fmt.Errorf("write key id: %w", err)
 	}
-	if err := os.WriteFile(p.publicKey(d), pub, 0644); err != nil {
-		return fmt.Errorf("save public key: %w", err)
-	}
-	return nil
+	return dir, true, nil
 }
