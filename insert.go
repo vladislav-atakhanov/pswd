@@ -1,6 +1,7 @@
 package pswd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -8,6 +9,9 @@ import (
 )
 
 func (p *Pswd) Insert(name string, password string) (string, error) {
+	if _, err := p.Type(name); err == nil {
+		return "", fmt.Errorf("already exists")
+	}
 	id, err := p.getKeyId(name)
 	if err != nil {
 		return "", err
