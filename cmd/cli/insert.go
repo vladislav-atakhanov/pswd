@@ -16,14 +16,21 @@ var insertCmd = &cobra.Command{
 	Short: "Insert new password to storage",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var password, name string
-		var err error
+
+		p, err := pswd.NewPswd("")
+		if err != nil {
+			return err
+		}
 		switch len(args) {
 		case 0:
 			return PassArgumentsErr("name")
 		case 1:
 			{
 				name = args[0]
-				password, err = readPassword()
+				if err := checkInsert(p, name); err != nil {
+					return err
+				}
+				password, err = readPasswordFromStdin()
 				if err != nil {
 					return err
 				}
@@ -36,8 +43,7 @@ var insertCmd = &cobra.Command{
 		default:
 			return TooManyArgumentsErr()
 		}
-		p, err := pswd.NewPswd("")
-		if err != nil {
+		if err := checkInsert(p, name); err != nil {
 			return err
 		}
 		if _, err := p.Insert(name, password); err != nil {
@@ -48,7 +54,14 @@ var insertCmd = &cobra.Command{
 	},
 }
 
-func readPassword() (string, error) {
+func checkInsert(p *pswd.Pswd, name string) error {
+	if _, err := p.Type(name); err == nil {
+		return fmt.Errorf("%s already exists", s.Passname.Render(name))
+	}
+	return nil
+}
+
+func readPasswordFromStdin() (string, error) {
 	stat, err := os.Stdin.Stat()
 	if err != nil {
 		return "", err
