@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	s "github.com/vladislav-atakhanov/pswd/cmd/cli/styles"
 	"github.com/vladislav-atakhanov/pswd/pkg/keys"
 	"golang.org/x/term"
 )
@@ -23,7 +24,7 @@ var genereteKeysCmd = &cobra.Command{
 			if err := check(id); err != nil {
 				return err
 			}
-			keyLabel := keyColor(id)
+			keyLabel := s.Key.Render(id)
 			password, err = promptPassword(
 				fmt.Sprintf("Enter password for %s key: ", keyLabel),
 				fmt.Sprintf("Repeat password for %s key: ", keyLabel),
@@ -48,14 +49,14 @@ var genereteKeysCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Println("New keys generated and saved to", dirColor(d))
+		fmt.Println("New keys generated and saved to", s.Dir.Render(d))
 		return nil
 	},
 }
 
 func check(id string) error {
 	if keys.Has(id) {
-		return fmt.Errorf("Key pair %s already exists", keyColor(id))
+		return fmt.Errorf("Key pair %s already exists", s.Key.Render(id))
 	}
 	return nil
 }

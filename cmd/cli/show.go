@@ -7,6 +7,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 	"github.com/vladislav-atakhanov/pswd"
+	s "github.com/vladislav-atakhanov/pswd/cmd/cli/styles"
 )
 
 var showCmd = &cobra.Command{
@@ -46,16 +47,16 @@ var showCmd = &cobra.Command{
 			if err := clipboard.WriteAll(password); err != nil {
 				return err
 			}
-			fmt.Printf("Copied %s to clipboard\n", passColor(name))
+			fmt.Printf("Copied %s to clipboard\n", s.Pass.Render(name))
 		} else {
-			fmt.Println(dataColor(data))
+			fmt.Println(s.Data.Render(data))
 		}
 		return nil
 	}),
 }
 
 func enterMasterPassword(key string) (string, error) {
-	return promptPassword(fmt.Sprintf("Enter password for %s key: ", keyColor(key)), "")
+	return promptPassword(fmt.Sprintf("Enter password for %s key: ", s.Key.Render(key)), "")
 }
 
 func showTree(name string) error {
@@ -67,7 +68,7 @@ func showTree(name string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(dirColor(tree.Name))
+	fmt.Println(s.Dir.Render(tree.Name))
 	for i, child := range tree.Children {
 		printTree(child, "", i == len(tree.Children)-1)
 	}
@@ -79,13 +80,14 @@ func printTree(node *pswd.TreeNode, prefix string, isLast bool) {
 	if isLast {
 		branch = "`-- "
 	}
-	color := reset
+	color := s.File
 	if node.IsDir {
-		color = dirColor
+		color = s.Dir
 	}
 
-	fmt.Print(prefixColor(prefix, branch))
-	fmt.Println(color(node.Name))
+	fmt.Print(s.Prefix.Render(prefix))
+	fmt.Print(s.Prefix.Render(branch))
+	fmt.Println(color.Render(node.Name))
 
 	newPrefix := prefix
 	if isLast {

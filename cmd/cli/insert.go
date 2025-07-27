@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vladislav-atakhanov/pswd"
+	s "github.com/vladislav-atakhanov/pswd/cmd/cli/styles"
 )
 
 var insertCmd = &cobra.Command{
@@ -42,7 +43,7 @@ var insertCmd = &cobra.Command{
 		if _, err := p.Insert(name, password); err != nil {
 			return err
 		}
-		fmt.Println("New password saved as", passColor(name))
+		fmt.Println("New password saved as", s.Pass.Render(name))
 		return nil
 	},
 }

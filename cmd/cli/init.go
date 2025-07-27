@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vladislav-atakhanov/pswd"
+	s "github.com/vladislav-atakhanov/pswd/cmd/cli/styles"
 )
 
 func registerInit(c *cobra.Command) {
@@ -33,7 +34,7 @@ var initCmd = &cobra.Command{
 		names := make(chan string)
 		go func() {
 			for n := range names {
-				fmt.Println("Password", passColor(n), "reencrypt")
+				fmt.Println("Password", s.Pass.Render(n), "reencrypt")
 			}
 		}()
 		d, reinit, err := p.Init(subfolder, keyId, enterMasterPassword, names)
@@ -41,9 +42,9 @@ var initCmd = &cobra.Command{
 			return err
 		}
 		if reinit {
-			fmt.Printf("Password store at %s reinitialized\n", dirColor(d))
+			fmt.Printf("Password store at %s reinitialized\n", s.Dir.Render(d))
 		} else {
-			fmt.Println("New password store initialized at", dirColor(d))
+			fmt.Println("New password store initialized at", s.Dir.Render(d))
 		}
 		return nil
 	},

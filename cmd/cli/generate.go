@@ -10,6 +10,7 @@ import (
 	"github.com/sethvargo/go-password/password"
 	"github.com/spf13/cobra"
 	"github.com/vladislav-atakhanov/pswd"
+	s "github.com/vladislav-atakhanov/pswd/cmd/cli/styles"
 )
 
 const defaultLength = 25
@@ -29,7 +30,7 @@ var generateCmd = &cobra.Command{
 			name = args[0]
 			l, err := strconv.Atoi(args[1])
 			if err != nil {
-				return fmt.Errorf("Length must be an integer. Passed %s", errorColor(args[1]))
+				return fmt.Errorf("Length must be an integer. Passed %s", s.Error.Render(args[1]))
 			}
 			length = l
 		default:
@@ -52,9 +53,9 @@ var generateCmd = &cobra.Command{
 			if err := clipboard.WriteAll(password); err != nil {
 				return err
 			}
-			fmt.Printf("Password saved as %s and copied to clipboard\n", passColor(name))
+			fmt.Printf("Password saved as %s and copied to clipboard\n", s.Pass.Render(name))
 		} else {
-			fmt.Printf("Password saved as %s and here:\n%s\n", passColor(name), dataColor(password))
+			fmt.Printf("Password saved as %s and here:\n%s\n", s.Pass.Render(name), s.Data.Render(password))
 		}
 		return nil
 	},
