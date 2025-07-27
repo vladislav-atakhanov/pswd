@@ -11,7 +11,7 @@ import (
 func Generate(password string) (priv []byte, pub []byte, err error) {
 	return crypto.GenerateKeys(password)
 }
-func Has(id string) bool {
+func Exists(id string) bool {
 	s, err := os.Stat(keyPath(id, "private.asc"))
 	if err != nil {
 		return false

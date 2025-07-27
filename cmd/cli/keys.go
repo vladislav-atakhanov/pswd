@@ -55,7 +55,7 @@ var genereteKeysCmd = &cobra.Command{
 }
 
 func check(id string) error {
-	if keys.Has(id) {
+	if keys.Exists(id) {
 		return fmt.Errorf("Key pair %s already exists", s.Key.Render(id))
 	}
 	return nil
