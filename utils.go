@@ -16,10 +16,14 @@ func (p *Pswd) Passfile(name string) string {
 	return p.Path(name) + ".asc"
 }
 func (p *Pswd) passfileToName(pf string) string {
-	rootPath := strings.TrimPrefix(pf, p.storagePath)
-	relativePath := strings.TrimPrefix(rootPath, "/")
-	name := strings.TrimSuffix(relativePath, ".asc")
-	return name
+	rel, err := filepath.Rel(p.storagePath, pf)
+	if err != nil {
+		panic(err)
+	}
+	if rel == "." {
+		return ""
+	}
+	return strings.TrimSuffix(rel, ".asc")
 }
 
 func walk(dir string, filter func(path string, d fs.DirEntry) bool) ([]string, error) {
