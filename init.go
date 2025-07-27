@@ -83,7 +83,7 @@ func (p *Pswd) Init(name string, id string, master func(key string) (string, err
 		if p == dst {
 			continue
 		}
-		if strings.HasPrefix(dir, path.Dir(p)) {
+		if s, _ := isSubPath(path.Dir(p), dir); s {
 			continue
 		}
 		if err := os.Remove(p); err != nil {

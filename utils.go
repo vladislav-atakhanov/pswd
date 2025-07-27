@@ -26,6 +26,32 @@ func (p *Pswd) passfileToName(pf string) string {
 	return strings.ReplaceAll(strings.TrimSuffix(rel, ".asc"), "\\", "/")
 }
 
+func isSubPath(base, target string) (bool, error) {
+	absBase, err := filepath.Abs(base)
+	if err != nil {
+		return false, err
+	}
+
+	absTarget, err := filepath.Abs(target)
+	if err != nil {
+		return false, err
+	}
+
+	absBase = filepath.Clean(absBase)
+	absTarget = filepath.Clean(absTarget)
+
+	rel, err := filepath.Rel(absBase, absTarget)
+	if err != nil {
+		return false, err
+	}
+
+	if !strings.HasPrefix(rel, "..") && rel != ".." {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func walk(dir string, filter func(path string, d fs.DirEntry) bool) ([]string, error) {
 	files := []string{}
 	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
