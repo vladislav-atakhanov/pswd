@@ -13,18 +13,16 @@ var (
 	whiteStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("15"))
 	blackStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("0"))
 
-	boldStyle      = lipgloss.NewStyle().Bold(true)
-	underlineStyle = lipgloss.NewStyle().Underline(true)
-	resetStyle     = lipgloss.NewStyle()
+	resetStyle = lipgloss.NewStyle()
 )
 
 var (
-	Key    = greenStyle
-	Error  = redStyle
-	Dir    = blueStyle
-	Data   = yellowStyle
-	Pass   = cyanStyle
-	Prefix = grayStyle
-	Magic  = magentaStyle
-	File   = resetStyle
+	KeyID     = yellowStyle
+	Passname  = cyanStyle.Bold(true)
+	Error     = redStyle
+	Dir       = blueStyle.Bold(true)
+	Data      = greenStyle
+	Secondary = grayStyle
+	File      = resetStyle
+	Program   = cyanStyle
 )

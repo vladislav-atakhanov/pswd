@@ -53,9 +53,9 @@ var generateCmd = &cobra.Command{
 			if err := clipboard.WriteAll(password); err != nil {
 				return err
 			}
-			fmt.Printf("Password saved as %s and copied to clipboard\n", s.Pass.Render(name))
+			fmt.Printf("Password saved as %s and copied to clipboard\n", s.Passname.Render(name))
 		} else {
-			fmt.Printf("Password saved as %s and here:\n%s\n", s.Pass.Render(name), s.Data.Render(password))
+			fmt.Printf("Password saved as %s and here:\n%s\n", s.Passname.Render(name), s.Data.Render(password))
 		}
 		return nil
 	},

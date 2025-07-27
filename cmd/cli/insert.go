@@ -49,7 +49,7 @@ var insertCmd = &cobra.Command{
 		if _, err := p.Insert(name, password); err != nil {
 			return err
 		}
-		fmt.Println("New password saved as", s.Pass.Render(name))
+		fmt.Println("New password saved as", s.Passname.Render(name))
 		return nil
 	},
 }

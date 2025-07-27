@@ -34,7 +34,7 @@ var initCmd = &cobra.Command{
 		names := make(chan string)
 		go func() {
 			for n := range names {
-				fmt.Println("Password", s.Pass.Render(n), "reencrypt")
+				fmt.Println("Password", s.Passname.Render(n), "reencrypt")
 			}
 		}()
 		d, reinit, err := p.Init(subfolder, keyId, enterMasterPassword, names)

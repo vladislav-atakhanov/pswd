@@ -47,7 +47,7 @@ var showCmd = &cobra.Command{
 			if err := clipboard.WriteAll(password); err != nil {
 				return err
 			}
-			fmt.Printf("Copied %s to clipboard\n", s.Pass.Render(name))
+			fmt.Printf("Copied %s to clipboard\n", s.Passname.Render(name))
 		} else {
 			fmt.Println(s.Data.Render(data))
 		}
@@ -56,7 +56,7 @@ var showCmd = &cobra.Command{
 }
 
 func enterMasterPassword(key string) (string, error) {
-	return promptPassword(fmt.Sprintf("Enter password for %s key: ", s.Key.Render(key)), "")
+	return promptPassword(fmt.Sprintf("Enter password for %s key: ", s.KeyID.Render(key)), "")
 }
 
 func showTree(name string) error {
@@ -76,24 +76,24 @@ func showTree(name string) error {
 }
 
 func printTree(node *pswd.TreeNode, prefix string, isLast bool) {
-	branch := "|-- "
+	branch := "├── "
 	if isLast {
-		branch = "`-- "
+		branch = "└── "
 	}
 	color := s.File
 	if node.IsDir {
 		color = s.Dir
 	}
 
-	fmt.Print(s.Prefix.Render(prefix))
-	fmt.Print(s.Prefix.Render(branch))
+	fmt.Print(s.Secondary.Render(prefix))
+	fmt.Print(s.Secondary.Render(branch))
 	fmt.Println(color.Render(node.Name))
 
 	newPrefix := prefix
 	if isLast {
 		newPrefix += "    "
 	} else {
-		newPrefix += "|   "
+		newPrefix += "│   "
 	}
 
 	for i, child := range node.Children {

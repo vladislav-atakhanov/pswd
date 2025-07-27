@@ -24,7 +24,7 @@ var genereteKeysCmd = &cobra.Command{
 			if err := check(id); err != nil {
 				return err
 			}
-			keyLabel := s.Key.Render(id)
+			keyLabel := s.KeyID.Render(id)
 			password, err = promptPassword(
 				fmt.Sprintf("Enter password for %s key: ", keyLabel),
 				fmt.Sprintf("Repeat password for %s key: ", keyLabel),
@@ -56,23 +56,23 @@ var genereteKeysCmd = &cobra.Command{
 
 func check(id string) error {
 	if keys.Exists(id) {
-		return fmt.Errorf("Key pair %s already exists", s.Key.Render(id))
+		return fmt.Errorf("Key pair %s already exists", s.KeyID.Render(id))
 	}
 	return nil
 }
 
 func promptPassword(label, confirmLabel string) (string, error) {
-	fmt.Print(label)
+	fmt.Fprint(os.Stderr, label)
 	passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
-	fmt.Println()
+	fmt.Fprintln(os.Stderr)
 	if err != nil {
 		return "", err
 	}
 
 	if confirmLabel != "" {
-		fmt.Print(confirmLabel)
+		fmt.Fprint(os.Stderr, confirmLabel)
 		confirmBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
-		fmt.Println()
+		fmt.Fprintln(os.Stderr)
 		if err != nil {
 			return "", err
 		}
