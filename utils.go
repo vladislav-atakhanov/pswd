@@ -23,7 +23,7 @@ func (p *Pswd) passfileToName(pf string) string {
 	if rel == "." {
 		return ""
 	}
-	return strings.TrimSuffix(rel, ".asc")
+	return strings.ReplaceAll(strings.TrimSuffix(rel, ".asc"), "\\", "/")
 }
 
 func walk(dir string, filter func(path string, d fs.DirEntry) bool) ([]string, error) {
