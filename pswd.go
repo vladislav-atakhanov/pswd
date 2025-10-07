@@ -3,10 +3,13 @@ package pswd
 import (
 	"os"
 	"path"
+
+	"github.com/vladislav-atakhanov/pswd/pkg/keys"
 )
 
 type Pswd struct {
 	storagePath string
+	keyStore    *keys.KeyStore
 }
 
 func getStorageDir() (string, error) {
@@ -17,7 +20,7 @@ func getStorageDir() (string, error) {
 	return path.Join(dir, ".pswd"), nil
 }
 
-func NewPswd(storagePath string) (*Pswd, error) {
+func NewPswd(storagePath string, keyStorePath string) (*Pswd, error) {
 	if storagePath == "" {
 		s, err := getStorageDir()
 		if err != nil {
@@ -25,7 +28,14 @@ func NewPswd(storagePath string) (*Pswd, error) {
 		}
 		storagePath = s
 	}
+
+	ks, err := keys.NewKeyStore(keyStorePath)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Pswd{
 		storagePath: storagePath,
+		keyStore:    ks,
 	}, nil
 }

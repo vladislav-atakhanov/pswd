@@ -17,7 +17,7 @@ var insertCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var password, name string
 
-		p, err := pswd.NewPswd("")
+		p, err := pswd.NewPswd("", "")
 		if err != nil {
 			return err
 		}

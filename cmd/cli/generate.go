@@ -38,7 +38,7 @@ var generateCmd = &cobra.Command{
 		}
 		clip, _ := cmd.Flags().GetBool("clip")
 		noSymbols, _ := cmd.Flags().GetBool("no-symbols")
-		p, err := pswd.NewPswd("")
+		p, err := pswd.NewPswd("", "")
 		if err != nil {
 			return err
 		}

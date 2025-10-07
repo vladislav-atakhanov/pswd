@@ -27,7 +27,7 @@ var initCmd = &cobra.Command{
 		default:
 			return TooManyArgumentsErr()
 		}
-		p, err := pswd.NewPswd("")
+		p, err := pswd.NewPswd("", "")
 		if err != nil {
 			return err
 		}

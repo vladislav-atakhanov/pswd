@@ -16,12 +16,18 @@ var genereteKeysCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var id, password string
 		var err error
+
+		ks, err := keys.NewKeyStore("")
+		if err != nil {
+			return err
+		}
+
 		switch len(args) {
 		case 0:
 			return PassArgumentsErr("id")
 		case 1:
 			id = args[0]
-			if err := check(id); err != nil {
+			if err := check(ks, id); err != nil {
 				return err
 			}
 			keyLabel := s.KeyID.Render(id)
@@ -34,7 +40,7 @@ var genereteKeysCmd = &cobra.Command{
 			}
 		case 2:
 			id = args[0]
-			if err := check(id); err != nil {
+			if err := check(ks, id); err != nil {
 				return err
 			}
 			password = args[1]
@@ -45,7 +51,7 @@ var genereteKeysCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		d, err := keys.Save(id, priv, pub)
+		d, err := ks.Save(id, priv, pub)
 		if err != nil {
 			return err
 		}
@@ -54,8 +60,8 @@ var genereteKeysCmd = &cobra.Command{
 	},
 }
 
-func check(id string) error {
-	if keys.Exists(id) {
+func check(ks *keys.KeyStore, id string) error {
+	if ks.Exists(id) {
 		return fmt.Errorf("Key pair %s already exists", s.KeyID.Render(id))
 	}
 	return nil

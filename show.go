@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/vladislav-atakhanov/pswd/pkg/keys"
 )
 
 func (p *Pswd) Show(name string, master string) (string, error) {
@@ -25,7 +23,7 @@ func (p *Pswd) ShowLazy(name string, master func(key string) (string, error)) (s
 		return "", err
 	}
 
-	plaintext, err := keys.DecryptLazy(id, func() (string, error) {
+	plaintext, err := p.keyStore.DecryptLazy(id, func() (string, error) {
 		return master(id)
 	}, cipher)
 	if err != nil {

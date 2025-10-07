@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/vladislav-atakhanov/pswd/pkg/keys"
 )
 
 func (p *Pswd) Insert(name string, password string) (string, error) {
@@ -21,7 +19,7 @@ func (p *Pswd) Insert(name string, password string) (string, error) {
 
 func (p *Pswd) InsertWithKey(id string, name string, password string) (string, error) {
 	dir := p.Path(filepath.Dir(name))
-	cipher, err := keys.Encrypt(id, []byte(password))
+	cipher, err := p.keyStore.Encrypt(id, []byte(password))
 	if err != nil {
 		return "", err
 	}

@@ -24,7 +24,7 @@ var showCmd = &cobra.Command{
 			return TooManyArgumentsErr()
 		}
 		clip, _ := cmd.Flags().GetBool("clip")
-		p, err := pswd.NewPswd("")
+		p, err := pswd.NewPswd("", "")
 		if err != nil {
 			return err
 		}
@@ -60,7 +60,7 @@ func enterMasterPassword(key string) (string, error) {
 }
 
 func showTree(name string) error {
-	p, err := pswd.NewPswd("")
+	p, err := pswd.NewPswd("", "")
 	if err != nil {
 		return err
 	}
