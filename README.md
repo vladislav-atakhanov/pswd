@@ -18,9 +18,9 @@ Passwords are stored locally in `~/.pswd`.
 ## 📦 Installation
 
 ```bash
-git clone https://github.com/yourusername/pswd.git
+git clone https://github.com/vladislav-atakhanov/pswd.git
 cd pswd
-go build -o pswd ./cmd/cli.go
+go build -o pswd ./cmd/cli
 ```
 
 ## 🚀 Usage
