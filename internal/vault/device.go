@@ -63,11 +63,17 @@ func readDevices(r io.ReadSeeker) ([]Device, error) {
 	return res, nil
 }
 
+func (v *Vault) Devices() []Device {
+	res := make([]Device, len(v.devices))
+	copy(res, v.devices)
+	return res
+}
+
 func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, privateKey [32]byte) error {
 	if err := validateLabel(label); err != nil {
 		return err
 	}
-	for _, d := range v.Devices {
+	for _, d := range v.devices {
 		if d.Name() == label {
 			return fmt.Errorf("%w: %s", ErrDeviceExists, label)
 		}
@@ -76,13 +82,13 @@ func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, pr
 		return err
 	}
 	v.Full = true
-	v.Devices = append(v.Devices, newDevice(newPublicKey, label))
+	v.devices = append(v.devices, newDevice(newPublicKey, label))
 	return nil
 }
 
 func (v *Vault) RemoveDevice(publicKey [32]byte, r io.ReaderAt, privateKey [32]byte) error {
 	index := -1
-	for i, d := range v.Devices {
+	for i, d := range v.devices {
 		p := d.PublicKey()
 		if bytes.Equal(p[:], publicKey[:]) {
 			index = i
@@ -99,6 +105,6 @@ func (v *Vault) RemoveDevice(publicKey [32]byte, r io.ReaderAt, privateKey [32]b
 
 	v.Full = true
 
-	v.Devices = append(v.Devices[:index], v.Devices[index+1:]...)
+	v.devices = append(v.devices[:index], v.devices[index+1:]...)
 	return nil
 }

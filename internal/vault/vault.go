@@ -29,7 +29,7 @@ type contentKey = uuid.V4
 
 // Vault holds the entire vault state in memory
 type Vault struct {
-	Devices []Device
+	devices []Device
 	content map[contentKey]Item
 
 	dataEnd int
@@ -40,7 +40,7 @@ type Vault struct {
 
 func New(publicKey [32]byte, name string) *Vault {
 	return &Vault{
-		Devices: []Device{newDevice(publicKey, name)},
+		devices: []Device{newDevice(publicKey, name)},
 		content: make(map[contentKey]Item),
 		Full:    true,
 	}
@@ -60,7 +60,7 @@ func Open(r io.ReadSeeker, size int, privateKey [32]byte) (*Vault, error) {
 	if err != nil {
 		return nil, err
 	}
-	v := new(Vault{Devices: devices,
+	v := new(Vault{devices: devices,
 		content: make(map[contentKey]Item),
 	})
 	if err := v.read(r, size, privateKey); err != nil {
@@ -73,7 +73,7 @@ const version_length = 4
 
 func (v *Vault) HeaderLength() int {
 	res := version_length + 2
-	for _, d := range v.Devices {
+	for _, d := range v.devices {
 		res += len(d.Bytes())
 	}
 	return res
@@ -94,7 +94,7 @@ func (v *Vault) decrypt(r io.Reader, out io.Writer, privateKey [32]byte) error {
 	}
 
 	index := -1
-	for i, d := range v.Devices {
+	for i, d := range v.devices {
 		p := d.PublicKey()
 		if bytes.Equal(p[:], publicKey[:]) {
 			index = i
@@ -104,7 +104,7 @@ func (v *Vault) decrypt(r io.Reader, out io.Writer, privateKey [32]byte) error {
 	if index == -1 {
 		return ErrAccessDenied
 	}
-	if err := crypto.DecryptStream(out, r, privateKey, len(v.Devices), index); err != nil {
+	if err := crypto.DecryptStream(out, r, privateKey, len(v.devices), index); err != nil {
 		return err
 	}
 	return nil

@@ -15,11 +15,11 @@ func TestNew(t *testing.T) {
 	}
 
 	v := New(pub, "test-device")
-	if len(v.Devices) != 1 {
-		t.Fatalf("expected 1 device, got %d", len(v.Devices))
+	if len(v.devices) != 1 {
+		t.Fatalf("expected 1 device, got %d", len(v.devices))
 	}
-	if v.Devices[0].Name() != "test-device" {
-		t.Fatalf("expected device name 'test-device', got %q", v.Devices[0].Name())
+	if v.devices[0].Name() != "test-device" {
+		t.Fatalf("expected device name 'test-device', got %q", v.devices[0].Name())
 	}
 	if !v.Full {
 		t.Fatal("expected new vault to be marked Full")

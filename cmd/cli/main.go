@@ -84,7 +84,7 @@ func init() {
 }
 
 func main() {
-	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, infoCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd, editCmd)
+	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd, editCmd, listCmd, statsCmd)
 
 	ctx := trapSignals()
 	exitCode := 0

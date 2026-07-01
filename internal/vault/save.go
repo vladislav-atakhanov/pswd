@@ -14,8 +14,8 @@ type Span struct {
 }
 
 func (v *Vault) saveBody(w io.Writer) error {
-	keys := make([][32]byte, len(v.Devices))
-	for i, d := range v.Devices {
+	keys := make([][32]byte, len(v.devices))
+	for i, d := range v.devices {
 		keys[i] = d.PublicKey()
 	}
 
@@ -124,10 +124,10 @@ func (v *Vault) saveHeader(w io.Writer) error {
 	if _, err := w.Write([]byte("VLT1")); err != nil {
 		return err
 	}
-	if err := binary.Write(w, binary.BigEndian, uint16(len(v.Devices))); err != nil {
+	if err := binary.Write(w, binary.BigEndian, uint16(len(v.devices))); err != nil {
 		return err
 	}
-	for _, dev := range v.Devices {
+	for _, dev := range v.devices {
 		if _, err := w.Write(dev.Bytes()); err != nil {
 			return err
 		}

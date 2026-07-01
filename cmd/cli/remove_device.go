@@ -28,7 +28,7 @@ var removeDeviceCmd = &cobra.Command{
 			copy(pub[:], raw)
 
 			name := hex.EncodeToString(raw)
-			for _, d := range ctx.Vault.Devices {
+			for _, d := range ctx.Vault.Devices() {
 				if d.PublicKey() == pub {
 					name = d.Name()
 					break

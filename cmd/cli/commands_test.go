@@ -22,11 +22,11 @@ func collectCommands(cmd *cobra.Command) []cmdCheck {
 
 func TestRootCmdHasAllSubcommands(t *testing.T) {
 	rootCmd.ResetCommands()
-	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, infoCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd)
+	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd)
 
 	expected := map[string]bool{
 		"genkey": true, "export": true, "master": true, "init": true,
-		"add-device": true, "info": true, "add": true, "search": true,
+		"add-device": true, "add": true, "search": true,
 		"remove": true, "rename": true, "compact": true,
 		"remove-device": true, "generate": true,
 	}
@@ -42,11 +42,10 @@ func TestRootCmdHasAllSubcommands(t *testing.T) {
 
 func TestCommandArgs(t *testing.T) {
 	rootCmd.ResetCommands()
-	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, infoCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd)
+	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd)
 
 	expected := map[string]cobra.PositionalArgs{
 		"compact":       cobra.NoArgs,
-		"info":          cobra.NoArgs,
 		"add":           cobra.RangeArgs(1, 2),
 		"generate":      cobra.RangeArgs(1, 2),
 		"remove":        cobra.ExactArgs(1),
@@ -73,7 +72,7 @@ func TestCommandArgs(t *testing.T) {
 
 func TestCommandYesFlag(t *testing.T) {
 	rootCmd.ResetCommands()
-	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, infoCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd)
+	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd)
 
 	for _, cc := range collectCommands(rootCmd) {
 		flag := cc.cmd.Flags().Lookup("yes")
