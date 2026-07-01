@@ -3,4 +3,4 @@ go = "latest"
 hexyl = "latest"
 
 [tasks.build]
-run = ["go run cmd/cli/main.go"]
+run = ["go run ./cmd/cli"]
