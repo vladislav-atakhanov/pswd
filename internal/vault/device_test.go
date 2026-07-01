@@ -1,4 +1,4 @@
-package main
+package vault
 
 import (
 	"strings"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/vladislav-atakhanov/pswd/internal/crypto"
 	"github.com/vladislav-atakhanov/pswd/internal/mem"
-	"github.com/vladislav-atakhanov/pswd/internal/vault"
 )
 
 func TestRemoveDevice(t *testing.T) {
@@ -22,7 +21,7 @@ func TestRemoveDevice(t *testing.T) {
 	mf := &mem.MemoryFile{}
 
 	// Create vault with device1
-	v := vault.New()
+	v := New()
 	if err := v.InitDevice(pub1, "device1"); err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +42,7 @@ func TestRemoveDevice(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v2, err := vault.Open(mf, mf.Len(), priv1)
+	v2, err := Open(mf, mf.Len(), priv1)
 	if err != nil {
 		t.Fatalf("open with priv1: %v", err)
 	}
@@ -61,7 +60,7 @@ func TestRemoveDevice(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v3, err := vault.Open(mf, mf.Len(), priv2)
+	v3, err := Open(mf, mf.Len(), priv2)
 	if err != nil {
 		t.Fatalf("open with priv2: %v", err)
 	}
@@ -79,7 +78,7 @@ func TestRemoveDevice(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v4, err := vault.Open(mf, mf.Len(), priv2)
+	v4, err := Open(mf, mf.Len(), priv2)
 	if err != nil {
 		t.Fatalf("open with priv2 after removal: %v", err)
 	}
@@ -91,7 +90,7 @@ func TestRemoveDevice(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	_, err = vault.Open(mf, mf.Len(), priv1)
+	_, err = Open(mf, mf.Len(), priv1)
 	if err == nil {
 		t.Fatal("expected error opening with removed device, got nil")
 	}

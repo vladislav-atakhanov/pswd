@@ -1,4 +1,4 @@
-package main
+package vault
 
 import (
 	"strings"
@@ -7,7 +7,6 @@ import (
 	"github.com/vladislav-atakhanov/pswd/internal/crypto"
 	"github.com/vladislav-atakhanov/pswd/internal/mem"
 	"github.com/vladislav-atakhanov/pswd/internal/uuid"
-	"github.com/vladislav-atakhanov/pswd/internal/vault"
 )
 
 func TestRename(t *testing.T) {
@@ -18,7 +17,7 @@ func TestRename(t *testing.T) {
 
 	mf := &mem.MemoryFile{}
 
-	v := vault.New()
+	v := New()
 	if err := v.InitDevice(pub, "test-device"); err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +35,7 @@ func TestRename(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v2, err := vault.Open(mf, mf.Len(), priv)
+	v2, err := Open(mf, mf.Len(), priv)
 	if err != nil {
 		t.Fatalf("first open: %v", err)
 	}
@@ -59,7 +58,7 @@ func TestRename(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v3, err := vault.Open(mf, mf.Len(), priv)
+	v3, err := Open(mf, mf.Len(), priv)
 	if err != nil {
 		t.Fatalf("reopen after rename: %v", err)
 	}

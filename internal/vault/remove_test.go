@@ -1,4 +1,4 @@
-package main
+package vault
 
 import (
 	"strings"
@@ -7,7 +7,6 @@ import (
 	"github.com/vladislav-atakhanov/pswd/internal/crypto"
 	"github.com/vladislav-atakhanov/pswd/internal/mem"
 	"github.com/vladislav-atakhanov/pswd/internal/uuid"
-	"github.com/vladislav-atakhanov/pswd/internal/vault"
 )
 
 func TestRemoveOneOfTwo(t *testing.T) {
@@ -19,7 +18,7 @@ func TestRemoveOneOfTwo(t *testing.T) {
 	mf := &mem.MemoryFile{}
 
 	// First session: create vault with 2 entries
-	v := vault.New()
+	v := New()
 	if err := v.InitDevice(pub, "test-device"); err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +39,7 @@ func TestRemoveOneOfTwo(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v2, err := vault.Open(mf, mf.Len(), priv)
+	v2, err := Open(mf, mf.Len(), priv)
 	if err != nil {
 		t.Fatalf("first open: %v", err)
 	}
@@ -67,7 +66,7 @@ func TestRemoveOneOfTwo(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v3, err := vault.Open(mf, mf.Len(), priv)
+	v3, err := Open(mf, mf.Len(), priv)
 	if err != nil {
 		t.Fatalf("second open (after remove+save): %v", err)
 	}
@@ -85,7 +84,7 @@ func TestRemoveAll(t *testing.T) {
 	mf := &mem.MemoryFile{}
 
 	// Create vault with 2 entries
-	v := vault.New()
+	v := New()
 	if err := v.InitDevice(pub, "test-device"); err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +105,7 @@ func TestRemoveAll(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v2, err := vault.Open(mf, mf.Len(), priv)
+	v2, err := Open(mf, mf.Len(), priv)
 	if err != nil {
 		t.Fatalf("first open: %v", err)
 	}
@@ -130,7 +129,7 @@ func TestRemoveAll(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v3, err := vault.Open(mf, mf.Len(), priv)
+	v3, err := Open(mf, mf.Len(), priv)
 	if err != nil {
 		t.Fatalf("reopen after remove all: %v", err)
 	}
@@ -148,7 +147,7 @@ func TestRemoveThenAdd(t *testing.T) {
 	mf := &mem.MemoryFile{}
 
 	// Create vault with 1 entry
-	v := vault.New()
+	v := New()
 	if err := v.InitDevice(pub, "test-device"); err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +165,7 @@ func TestRemoveThenAdd(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v2, err := vault.Open(mf, mf.Len(), priv)
+	v2, err := Open(mf, mf.Len(), priv)
 	if err != nil {
 		t.Fatalf("first open: %v", err)
 	}
@@ -191,7 +190,7 @@ func TestRemoveThenAdd(t *testing.T) {
 	if _, err := mf.Seek(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	v3, err := vault.Open(mf, mf.Len(), priv)
+	v3, err := Open(mf, mf.Len(), priv)
 	if err != nil {
 		t.Fatalf("reopen after remove+add: %v", err)
 	}
