@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 
 	"golang.org/x/term"
@@ -57,6 +59,16 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 
+		clip, _ := cmd.Flags().GetBool("clip")
+		if clip {
+			firstLine, _, _ := strings.Cut(string(content), "\n")
+			if err := clipboard.WriteAll(firstLine); err != nil {
+				return fmt.Errorf("clipboard: %w", err)
+			}
+			fmt.Println("Password copied to clipboard")
+			return nil
+		}
+
 		fmt.Print(string(content))
 		return nil
 	},
@@ -65,6 +77,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.PersistentFlags().StringP("vault", "p", "", "path to vault file")
 	rootCmd.PersistentFlags().StringP("key", "k", "", "path to private key file")
+	rootCmd.PersistentFlags().BoolP("clip", "c", false, "copy password to clipboard")
 }
 
 func main() {
