@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 	"github.com/vladislav-atakhanov/pswd/internal/mem"
 )
@@ -53,10 +52,9 @@ var generateCmd = &cobra.Command{
 
 		clip, _ := cmd.Flags().GetBool("clip")
 		if clip {
-			if err := clipboard.WriteAll(string(password)); err != nil {
+			if err := clipboardWrite(string(password)); err != nil {
 				return fmt.Errorf("clipboard: %w", err)
 			}
-			fmt.Printf("Password generated with label %s and copied to clipboard\n", label)
 			return nil
 		}
 
