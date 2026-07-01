@@ -16,11 +16,11 @@ func (v *Vault) read(r io.ReadSeeker, size int, privateKey [32]byte) error {
 	if err := binary.Read(r, binary.BigEndian, &indexLen); err != nil {
 		return err
 	}
-	if indexLen == 0 || indexLen > uint32(size-4) || indexLen > uint32(size) {
-		if size > 4 {
-			return fmt.Errorf("invalid index length: %d (file size: %d)", indexLen, size)
-		}
+	if size < 4 {
 		return nil
+	}
+	if indexLen == 0 || indexLen > uint32(size-4) || indexLen > uint32(size) {
+		return fmt.Errorf("invalid index length: %d (file size: %d)", indexLen, size)
 	}
 	v.dataEnd = size - 4 - int(indexLen)
 

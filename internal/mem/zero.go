@@ -3,9 +3,7 @@ package mem
 import "runtime"
 
 func ZeroBytes(s []byte) {
-	for i := range s {
-		s[i] = 0
-	}
+	clear(s)
 	runtime.KeepAlive(s)
 }
 
