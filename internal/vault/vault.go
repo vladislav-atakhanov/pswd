@@ -2,7 +2,6 @@ package vault
 
 import (
 	"bytes"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -86,27 +85,6 @@ func readString(file io.ReadSeeker, length int) (string, error) {
 		return "", err
 	}
 	return string(buf), nil
-}
-
-func (v *Vault) Print(b io.Writer) error {
-	if _, err := fmt.Fprintf(b, "Devices (%d):\n", len(v.Devices)); err != nil {
-		return err
-	}
-	for _, d := range v.Devices {
-		key := d.PublicKey()
-		if _, err := fmt.Fprintf(b, "\t%s %s\n", d.Name(), base64.URLEncoding.EncodeToString(key[:])); err != nil {
-			return err
-		}
-	}
-	if _, err := fmt.Fprintf(b, "Passwords (%d):\n", len(v.content)); err != nil {
-		return err
-	}
-	for id, i := range v.content {
-		if _, err := fmt.Fprintf(b, "\t%s | %s (%d:%d)\n", id.String(), i.Label, i.start, i.length); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (v *Vault) decrypt(r io.Reader, out io.Writer, privateKey [32]byte) error {
