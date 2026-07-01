@@ -21,12 +21,12 @@ func DecryptStream(out io.Writer, encryptedStream io.Reader, privBytes [32]byte,
 	// 1. Читаем эфемерный публичный ключ (первые 32 байта)
 	ephemeralPubBytes := make([]byte, 32)
 	if _, err := io.ReadFull(encryptedStream, ephemeralPubBytes); err != nil {
-		return fmt.Errorf("ошибка чтения эфемерного ключа: %w", err)
+		return fmt.Errorf("read ephemeral key: %w", err)
 	}
 
 	ephemeralPub, err := ecdh.X25519().NewPublicKey(ephemeralPubBytes)
 	if err != nil {
-		return fmt.Errorf("неверный эфемерный ключ: %w", err)
+		return fmt.Errorf("invalid ephemeral key: %w", err)
 	}
 
 	// Восстанавливаем свой приватный ключ и считаем общий секрет (Shared Secret)
@@ -36,7 +36,7 @@ func DecryptStream(out io.Writer, encryptedStream io.Reader, privBytes [32]byte,
 	}
 	sharedSecret, err := myPriv.ECDH(ephemeralPub)
 	if err != nil {
-		return fmt.Errorf("ошибка ECDH: %w", err)
+		return fmt.Errorf("ECDH: %w", err)
 	}
 
 	// 2. Инициализируем HMAC (пока без ключа данных, мы его узнаем через секунду)
@@ -52,7 +52,7 @@ func DecryptStream(out io.Writer, encryptedStream io.Reader, privBytes [32]byte,
 	allKeysLen := totalDevices * 32
 	keysBuffer := make([]byte, allKeysLen)
 	if _, err := io.ReadFull(encryptedStream, keysBuffer); err != nil {
-		return fmt.Errorf("ошибка чтения ключей устройств: %w", err)
+		return fmt.Errorf("read device keys: %w", err)
 	}
 
 	// Выдергиваем именно наш зашифрованный ключ данных
@@ -84,7 +84,7 @@ func DecryptStream(out io.Writer, encryptedStream io.Reader, privBytes [32]byte,
 	// 4. Читаем Nonce для тела данных (12 байт) и отправляем в HMAC
 	mainNonce := make([]byte, chacha20.NonceSize)
 	if _, err := io.ReadFull(encryptedStream, mainNonce); err != nil {
-		return fmt.Errorf("ошибка чтения nonce: %w", err)
+		return fmt.Errorf("read nonce: %w", err)
 	}
 	hmacSigner.Write(mainNonce)
 
@@ -123,13 +123,13 @@ func DecryptStream(out io.Writer, encryptedStream io.Reader, privBytes [32]byte,
 
 	// 6. ПРОВЕРКА ЦЕЛОСТНОСТИ: В pending сейчас лежит финальный HMAC с диска
 	if len(pending) != 32 {
-		return fmt.Errorf("поток слишком короткий: ожидалось 32 байта HMAC, получено %d", len(pending))
+		return fmt.Errorf("stream too short: expected 32 bytes of HMAC, got %d", len(pending))
 	}
 
 	calculatedMac := hmacSigner.Sum(nil)
 
 	if !hmac.Equal(pending, calculatedMac) {
-		return errors.New("КРИТИЧЕСКАЯ ОШИБКА: Подпись HMAC не совпадает! Данные повреждены или подменены")
+		return errors.New("HMAC signature mismatch: data corrupted or tampered with")
 	}
 
 	return nil
