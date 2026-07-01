@@ -21,8 +21,6 @@ func (u *V4) String() string {
 	)
 }
 
-type UUIDv4 [16]byte
-
 func UUIDv4FromString(s string) (V4, error) {
 	var u V4
 
