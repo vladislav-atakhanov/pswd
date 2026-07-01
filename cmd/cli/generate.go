@@ -62,3 +62,7 @@ var generateCmd = &cobra.Command{
 		return nil
 	},
 }
+
+func init() {
+	generateCmd.Flags().BoolP("clip", "c", false, "copy password to clipboard")
+}

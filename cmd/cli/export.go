@@ -14,7 +14,7 @@ import (
 	"github.com/vladislav-atakhanov/pswd/internal/mem"
 )
 
-var exportCmd = &cobra.Command{
+var deviceExportCmd = &cobra.Command{
 	Use:   "export <keyfile> <name>",
 	Short: "Export the public key with a device name",
 	Long:  "Decrypt the private key, derive the public key, and output a base64-encoded blob of the public key, name length, and name.",
@@ -73,4 +73,8 @@ var exportCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+func init() {
+	deviceExportCmd.Flags().BoolP("clip", "c", false, "copy token to clipboard")
 }

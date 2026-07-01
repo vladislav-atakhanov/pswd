@@ -10,8 +10,8 @@ import (
 	"github.com/vladislav-atakhanov/pswd/internal/vault"
 )
 
-var removeDeviceCmd = &cobra.Command{
-	Use:   "remove-device <hex-pubkey>",
+var deviceRemoveCmd = &cobra.Command{
+	Use:   "remove <hex-pubkey>",
 	Short: "Remove a device from the vault",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -57,5 +57,5 @@ var removeDeviceCmd = &cobra.Command{
 }
 
 func init() {
-	removeDeviceCmd.Flags().BoolP("yes", "y", false, "skip confirmation prompt")
+	deviceRemoveCmd.Flags().BoolP("yes", "y", false, "skip confirmation prompt")
 }

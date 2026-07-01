@@ -22,13 +22,20 @@ func collectCommands(cmd *cobra.Command) []cmdCheck {
 
 func TestRootCmdHasAllSubcommands(t *testing.T) {
 	rootCmd.ResetCommands()
-	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd)
+	rootCmd.AddCommand(
+		addCmd, showCmd, editCmd, removeCmd, renameCmd, listCmd,
+		searchCmd, generateCmd,
+		deviceCmd,
+		initCmd, compactCmd, statsCmd, passwdCmd,
+		genkeyCmd, completionCmd,
+	)
 
 	expected := map[string]bool{
-		"genkey": true, "export": true, "master": true, "init": true,
-		"add-device": true, "add": true, "search": true,
-		"remove": true, "rename": true, "compact": true,
-		"remove-device": true, "generate": true,
+		"add": true, "show": true, "edit": true, "remove": true,
+		"rename": true, "list": true, "search": true, "generate": true,
+		"device": true,
+		"init": true, "compact": true, "stats": true, "passwd": true,
+		"genkey": true, "completion": true,
 	}
 	for _, sub := range rootCmd.Commands() {
 		delete(expected, sub.Name())
@@ -42,21 +49,30 @@ func TestRootCmdHasAllSubcommands(t *testing.T) {
 
 func TestCommandArgs(t *testing.T) {
 	rootCmd.ResetCommands()
-	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd)
+	rootCmd.AddCommand(
+		addCmd, showCmd, editCmd, removeCmd, renameCmd, listCmd,
+		searchCmd, generateCmd,
+		deviceCmd,
+		initCmd, compactCmd, statsCmd, passwdCmd,
+		genkeyCmd, completionCmd,
+	)
 
 	expected := map[string]cobra.PositionalArgs{
-		"compact":       cobra.NoArgs,
-		"add":           cobra.RangeArgs(1, 2),
-		"generate":      cobra.RangeArgs(1, 2),
-		"remove":        cobra.ExactArgs(1),
-		"rename":        cobra.ExactArgs(2),
-		"remove-device": cobra.ExactArgs(1),
-		"add-device":    cobra.ExactArgs(1),
-		"search":        cobra.ExactArgs(1),
-		"export":        cobra.ExactArgs(2),
-		"init":          cobra.ExactArgs(2),
-		"genkey":        cobra.ExactArgs(1),
-		"master":        cobra.ExactArgs(1),
+		"compact":    cobra.NoArgs,
+		"stats":      cobra.NoArgs,
+		"list":       cobra.NoArgs,
+		"add":        cobra.RangeArgs(1, 2),
+		"generate":   cobra.RangeArgs(1, 2),
+		"show":       cobra.ExactArgs(1),
+		"edit":       cobra.ExactArgs(1),
+		"remove":     cobra.ExactArgs(1),
+		"rename":     cobra.ExactArgs(2),
+		"search":     cobra.ExactArgs(1),
+		"init":       cobra.ExactArgs(2),
+		"genkey":     cobra.ExactArgs(1),
+		"passwd":     cobra.ExactArgs(1),
+		"device":     cobra.NoArgs,
+		"completion": cobra.ExactArgs(1),
 	}
 	for _, cc := range collectCommands(rootCmd) {
 		want, ok := expected[cc.name]
@@ -72,12 +88,18 @@ func TestCommandArgs(t *testing.T) {
 
 func TestCommandYesFlag(t *testing.T) {
 	rootCmd.ResetCommands()
-	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd)
+	rootCmd.AddCommand(
+		addCmd, showCmd, editCmd, removeCmd, renameCmd, listCmd,
+		searchCmd, generateCmd,
+		deviceCmd,
+		initCmd, compactCmd, statsCmd, passwdCmd,
+		genkeyCmd, completionCmd,
+	)
 
 	for _, cc := range collectCommands(rootCmd) {
 		flag := cc.cmd.Flags().Lookup("yes")
 		switch cc.name {
-		case "compact", "remove", "remove-device":
+		case "compact", "remove":
 			if flag == nil {
 				t.Errorf("%s: expected --yes flag, got nil", cc.name)
 			} else if flag.Value.Type() != "bool" {

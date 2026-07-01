@@ -11,8 +11,8 @@ import (
 	"github.com/vladislav-atakhanov/pswd/internal/mem"
 )
 
-var masterCmd = &cobra.Command{
-	Use:   "master <keyfile>",
+var passwdCmd = &cobra.Command{
+	Use:   "passwd <keyfile>",
 	Short: "Change the master password",
 	Long:  "Decrypt the private key with the old password, then re-encrypt it with a new password and save to the same file.",
 	Args:  cobra.ExactArgs(1),

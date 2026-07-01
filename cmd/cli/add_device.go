@@ -35,8 +35,8 @@ func parsePublicKey(token string) (string, [32]byte, error) {
 	return name, pub, nil
 }
 
-var addDeviceCmd = &cobra.Command{
-	Use:   "add-device <token>",
+var deviceAddCmd = &cobra.Command{
+	Use:   "add <token>",
 	Short: "Add a device to the vault",
 	Long:  "Add a new device to the vault. Token can be a raw base64-URL-encoded public key (32 bytes) or the full output of pswd export.",
 	Args:  cobra.ExactArgs(1),
