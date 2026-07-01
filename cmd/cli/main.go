@@ -107,6 +107,9 @@ func main() {
 	defer mem.ZeroArray32(&priv)
 	v, err := vault.Open(file, size, priv)
 	if err != nil {
+		if size > 0 {
+			panic(fmt.Errorf("failed to open existing vault: %w", err))
+		}
 		if v, err = initStorage(); err != nil {
 			panic(err)
 		}
@@ -116,11 +119,15 @@ func main() {
 		if err := v.Save(file); err != nil {
 			panic(err)
 		}
+		if err := file.Sync(); err != nil {
+			panic(err)
+		}
 	}()
 	// content := must(v.Read(file, must(uuid.UUIDv4FromString("9fcbb1c4-3dbe-49e3-bd6d-945a359ea6a8")), priv))
 	// fmt.Println(content)
 	// v.Add(strings.NewReader("mail"), "mail.ru")
 	// v.Add(strings.NewReader("pass"), "github")
+	// v.Add(strings.NewReader("pswd"), "youtube")
 	for id, i := range v.Content {
 		content := must(v.Read(file, id, priv))
 		fmt.Println(i.Label, "-", content)
