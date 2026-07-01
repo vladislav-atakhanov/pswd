@@ -1,6 +1,7 @@
 package vault
 
 import (
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -91,6 +92,71 @@ func TestRemoveDevice(t *testing.T) {
 	_, err = Open(mf, mf.Len(), priv1)
 	if err == nil {
 		t.Fatal("expected error opening with removed device, got nil")
+	}
+}
+
+func TestAddDeviceDuplicateName(t *testing.T) {
+	priv, pub, err := crypto.GenerateKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, pub2, err := crypto.GenerateKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mf := &mem.MemoryFile{}
+	v := New(pub, "device1")
+	if err := v.Save(mf); err != nil {
+		t.Fatal(err)
+	}
+
+	v2, err := Open(mf, mf.Len(), priv)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	err = v2.AddDevice(pub2, "device1", mf, priv)
+	if err == nil {
+		t.Fatal("expected ErrDeviceExists, got nil")
+	}
+	if !errors.Is(err, ErrDeviceExists) {
+		t.Fatalf("expected ErrDeviceExists, got %v", err)
+	}
+}
+
+func TestRemoveDeviceNotFound(t *testing.T) {
+	priv, pub, err := crypto.GenerateKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, wrongPub, err := crypto.GenerateKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mf := &mem.MemoryFile{}
+	v := New(pub, "device1")
+	if err := v.Save(mf); err != nil {
+		t.Fatal(err)
+	}
+
+	v2, err := Open(mf, mf.Len(), priv)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	err = v2.RemoveDevice(wrongPub, mf, priv)
+	if err == nil {
+		t.Fatal("expected ErrDeviceNotFound, got nil")
+	}
+	if !errors.Is(err, ErrDeviceNotFound) {
+		t.Fatalf("expected ErrDeviceNotFound, got %v", err)
+	}
+}
+
+func TestDeviceNameEmptyRaw(t *testing.T) {
+	d := Device{}
+	if name := d.Name(); name != "" {
+		t.Fatalf("expected empty name for zero-value Device, got %q", name)
 	}
 }
 

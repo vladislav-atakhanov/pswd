@@ -40,6 +40,9 @@ func (d *Device) PublicKey() [32]byte {
 	return dst
 }
 func (d *Device) Name() string {
+	if len(d.raw) < 34 {
+		return ""
+	}
 	labelLen := binary.BigEndian.Uint16(d.raw[32:34])
 	return string(d.raw[34 : 34+int(labelLen)])
 }

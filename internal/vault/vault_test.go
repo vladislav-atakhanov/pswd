@@ -55,6 +55,38 @@ func TestOpenEmptyFile(t *testing.T) {
 	}
 }
 
+func TestCompactEmptyVault(t *testing.T) {
+	priv, pub, err := crypto.GenerateKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mf := &mem.MemoryFile{}
+	v := New(pub, "test-device")
+	if err := v.Save(mf); err != nil {
+		t.Fatal(err)
+	}
+
+	v2, err := Open(mf, mf.Len(), priv)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	if err := v2.Compact(mf, priv); err != nil {
+		t.Fatalf("compact on empty vault: %v", err)
+	}
+	if err := v2.Save(mf); err != nil {
+		t.Fatal(err)
+	}
+
+	v3, err := Open(mf, mf.Len(), priv)
+	if err != nil {
+		t.Fatalf("reopen after compact: %v", err)
+	}
+	if len(v3.content) != 0 {
+		t.Fatalf("expected 0 entries, got %d", len(v3.content))
+	}
+}
+
 func TestOpenTruncatedIndex(t *testing.T) {
 	priv, pub, err := crypto.GenerateKeys()
 	if err != nil {
