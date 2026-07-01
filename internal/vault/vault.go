@@ -30,10 +30,12 @@ type Vault struct {
 	orphanedSpans []Span
 }
 
-func New() *Vault {
-	return new(Vault{
+func New(publicKey [32]byte, name string) *Vault {
+	return &Vault{
+		Devices: []Device{newDevice(publicKey, name)},
 		Content: make(map[contentKey]Item),
-	})
+		Full:    true,
+	}
 }
 func Open(r io.ReadSeeker, size int, privateKey [32]byte) (*Vault, error) {
 	if _, err := r.Seek(0, io.SeekStart); err != nil {

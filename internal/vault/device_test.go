@@ -22,10 +22,7 @@ func TestRemoveDevice(t *testing.T) {
 	mf := &mem.MemoryFile{}
 
 	// Create vault with device1
-	v := New()
-	if err := v.InitDevice(pub1, "device1"); err != nil {
-		t.Fatal(err)
-	}
+	v := New(pub1, "device1")
 	if err := v.Add(strings.NewReader("password1"), "entry1"); err != nil {
 		t.Fatal(err)
 	}
@@ -110,10 +107,7 @@ func TestAddDeviceBothCanRead(t *testing.T) {
 	mf := &mem.MemoryFile{}
 
 	// Create vault with device1 and 2 entries
-	v := New()
-	if err := v.InitDevice(pub1, "device1"); err != nil {
-		t.Fatal(err)
-	}
+	v := New(pub1, "device1")
 	if err := v.Add(strings.NewReader("password1"), "entry1"); err != nil {
 		t.Fatal(err)
 	}

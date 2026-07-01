@@ -60,20 +60,6 @@ func readDevices(r io.ReadSeeker) ([]Device, error) {
 	return res, nil
 }
 
-func (v *Vault) InitDevice(newPublicKey [32]byte, label string) error {
-	if len(v.Content) > 0 {
-		return fmt.Errorf("Use AddDevice")
-	}
-	v.Full = true
-	for _, d := range v.Devices {
-		if d.Name() == label {
-			return fmt.Errorf("Device %s already in vault", label)
-		}
-	}
-	v.Devices = append(v.Devices, newDevice(newPublicKey, label))
-	return nil
-}
-
 func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, privateKey [32]byte) error {
 	v.Full = true
 	for _, d := range v.Devices {

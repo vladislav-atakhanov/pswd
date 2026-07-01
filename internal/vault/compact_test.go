@@ -18,10 +18,7 @@ func TestCompact(t *testing.T) {
 	mf := &mem.MemoryFile{}
 
 	// Create vault with 3 entries and save
-	v := New()
-	if err := v.InitDevice(pub, "test"); err != nil {
-		t.Fatal(err)
-	}
+	v := New(pub, "test")
 	if err := v.Add(strings.NewReader("password1"), "entry1"); err != nil {
 		t.Fatal(err)
 	}

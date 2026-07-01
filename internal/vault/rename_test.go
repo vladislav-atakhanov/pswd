@@ -17,10 +17,7 @@ func TestRename(t *testing.T) {
 
 	mf := &mem.MemoryFile{}
 
-	v := New()
-	if err := v.InitDevice(pub, "test-device"); err != nil {
-		t.Fatal(err)
-	}
+	v := New(pub, "test-device")
 	if err := v.Add(strings.NewReader("password1"), "entry1"); err != nil {
 		t.Fatal(err)
 	}

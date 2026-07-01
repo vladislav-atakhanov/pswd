@@ -18,10 +18,7 @@ func TestRemoveOneOfTwo(t *testing.T) {
 	mf := &mem.MemoryFile{}
 
 	// First session: create vault with 2 entries
-	v := New()
-	if err := v.InitDevice(pub, "test-device"); err != nil {
-		t.Fatal(err)
-	}
+	v := New(pub, "test-device")
 	if err := v.Add(strings.NewReader("password1"), "entry1"); err != nil {
 		t.Fatal(err)
 	}
@@ -84,10 +81,7 @@ func TestRemoveAll(t *testing.T) {
 	mf := &mem.MemoryFile{}
 
 	// Create vault with 2 entries
-	v := New()
-	if err := v.InitDevice(pub, "test-device"); err != nil {
-		t.Fatal(err)
-	}
+	v := New(pub, "test-device")
 	if err := v.Add(strings.NewReader("password1"), "entry1"); err != nil {
 		t.Fatal(err)
 	}
@@ -147,10 +141,7 @@ func TestRemoveThenAdd(t *testing.T) {
 	mf := &mem.MemoryFile{}
 
 	// Create vault with 1 entry
-	v := New()
-	if err := v.InitDevice(pub, "test-device"); err != nil {
-		t.Fatal(err)
-	}
+	v := New(pub, "test-device")
 	if err := v.Add(strings.NewReader("password1"), "entry1"); err != nil {
 		t.Fatal(err)
 	}
