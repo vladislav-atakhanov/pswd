@@ -41,6 +41,7 @@ func EncryptStream(out io.Writer, plainText io.Reader, publicKeys [][32]byte) (i
 
 	macKey := sha256.Sum256(append(dataKey, []byte("mac")...))
 	hmacSigner := hmac.New(sha256.New, macKey[:])
+	hmacSigner.Write(ephemeralPubBytes)
 
 	teeOut := io.MultiWriter(cw, hmacSigner)
 

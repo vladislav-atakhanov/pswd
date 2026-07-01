@@ -69,6 +69,7 @@ func DecryptStream(out io.Writer, encryptedStream io.Reader, privBytes [32]byte,
 	// Теперь, когда у нас есть dataKey, мы можем запустить валидный HMAC!
 	macKey := sha256.Sum256(append(dataKey, []byte("mac")...))
 	hmacSigner := hmac.New(sha256.New, macKey[:])
+	hmacSigner.Write(ephemeralPubBytes)
 
 	// Пропускаем через HMAC уже прочитанную секцию ключей девайсов
 	hmacSigner.Write(keysBuffer)
