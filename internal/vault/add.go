@@ -8,6 +8,9 @@ import (
 )
 
 func (v *Vault) Add(plain io.Reader, label string) error {
+	if err := validateLabel(label); err != nil {
+		return err
+	}
 	id, err := uuid.NewV4()
 	if err != nil {
 		return err

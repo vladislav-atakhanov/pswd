@@ -61,6 +61,9 @@ func readDevices(r io.ReadSeeker) ([]Device, error) {
 }
 
 func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, privateKey [32]byte) error {
+	if err := validateLabel(label); err != nil {
+		return err
+	}
 	v.Full = true
 	for _, d := range v.Devices {
 		if d.Name() == label {

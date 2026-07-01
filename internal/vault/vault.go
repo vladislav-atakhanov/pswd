@@ -16,6 +16,7 @@ var (
 	ErrNotFound       = errors.New("password not found")
 	ErrDeviceExists   = errors.New("device already in vault")
 	ErrDeviceNotFound = errors.New("device not found")
+	ErrInvalidLabel   = errors.New("invalid label")
 )
 
 type Item struct {
