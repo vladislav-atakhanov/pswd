@@ -67,27 +67,9 @@ func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, pr
 			return fmt.Errorf("%w: %s", ErrDeviceExists, label)
 		}
 	}
-	content := make(map[contentKey]Item, len(v.content))
-	for id, c := range v.content {
-		if c.content != nil {
-			content[id] = c
-			continue
-		}
-		b, err := v.Read(r, id, privateKey)
-		if err != nil {
-			return err
-		}
-		pass, err := io.ReadAll(b)
-		if err != nil {
-			return err
-		}
-		content[id] = Item{
-			Label:      c.Label,
-			LastUpdate: c.LastUpdate,
-			content:    bytes.NewReader(pass),
-		}
+	if err := v.loadContent(r, privateKey); err != nil {
+		return err
 	}
-	v.content = content
 	v.Devices = append(v.Devices, newDevice(newPublicKey, label))
 	return nil
 }
@@ -107,27 +89,9 @@ func (v *Vault) RemoveDevice(publicKey [32]byte, r io.ReaderAt, privateKey [32]b
 
 	v.Full = true
 
-	content := make(map[contentKey]Item, len(v.content))
-	for id, c := range v.content {
-		if c.content != nil {
-			content[id] = c
-			continue
-		}
-		b, err := v.Read(r, id, privateKey)
-		if err != nil {
-			return err
-		}
-		pass, err := io.ReadAll(b)
-		if err != nil {
-			return err
-		}
-		content[id] = Item{
-			Label:      c.Label,
-			LastUpdate: c.LastUpdate,
-			content:    bytes.NewReader(pass),
-		}
+	if err := v.loadContent(r, privateKey); err != nil {
+		return err
 	}
-	v.content = content
 
 	v.Devices = append(v.Devices[:index], v.Devices[index+1:]...)
 	return nil
