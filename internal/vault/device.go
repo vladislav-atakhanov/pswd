@@ -64,7 +64,6 @@ func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, pr
 	if err := validateLabel(label); err != nil {
 		return err
 	}
-	v.Full = true
 	for _, d := range v.Devices {
 		if d.Name() == label {
 			return fmt.Errorf("%w: %s", ErrDeviceExists, label)
@@ -73,6 +72,7 @@ func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, pr
 	if err := v.loadContent(r, privateKey); err != nil {
 		return err
 	}
+	v.Full = true
 	v.Devices = append(v.Devices, newDevice(newPublicKey, label))
 	return nil
 }
@@ -90,11 +90,11 @@ func (v *Vault) RemoveDevice(publicKey [32]byte, r io.ReaderAt, privateKey [32]b
 		return ErrDeviceNotFound
 	}
 
-	v.Full = true
-
 	if err := v.loadContent(r, privateKey); err != nil {
 		return err
 	}
+
+	v.Full = true
 
 	v.Devices = append(v.Devices[:index], v.Devices[index+1:]...)
 	return nil

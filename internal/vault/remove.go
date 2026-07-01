@@ -2,6 +2,7 @@ package vault
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/vladislav-atakhanov/pswd/internal/mem"
 )
@@ -9,7 +10,7 @@ import (
 func (v *Vault) Remove(id contentKey) error {
 	item, ok := v.content[id]
 	if !ok {
-		return nil
+		return fmt.Errorf("%w: %s", ErrNotFound, id.String())
 	}
 
 	if item.length > 0 {

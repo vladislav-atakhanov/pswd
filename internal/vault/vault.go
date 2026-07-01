@@ -89,14 +89,22 @@ func readString(file io.ReadSeeker, length int) (string, error) {
 }
 
 func (v *Vault) Print(b io.Writer) error {
-	fmt.Fprintf(b, "Devices (%d):\n", len(v.Devices))
+	if _, err := fmt.Fprintf(b, "Devices (%d):\n", len(v.Devices)); err != nil {
+		return err
+	}
 	for _, d := range v.Devices {
 		key := d.PublicKey()
-		fmt.Fprintf(b, "\t%s %s\n", d.Name(), base64.URLEncoding.EncodeToString(key[:]))
+		if _, err := fmt.Fprintf(b, "\t%s %s\n", d.Name(), base64.URLEncoding.EncodeToString(key[:])); err != nil {
+			return err
+		}
 	}
-	fmt.Fprintf(b, "Passwords (%d):\n", len(v.content))
+	if _, err := fmt.Fprintf(b, "Passwords (%d):\n", len(v.content)); err != nil {
+		return err
+	}
 	for id, i := range v.content {
-		fmt.Fprintf(b, "\t%s | %s (%d:%d)\n", id.String(), i.Label, i.start, i.length)
+		if _, err := fmt.Fprintf(b, "\t%s | %s (%d:%d)\n", id.String(), i.Label, i.start, i.length); err != nil {
+			return err
+		}
 	}
 	return nil
 }

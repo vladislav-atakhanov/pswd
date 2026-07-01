@@ -34,8 +34,8 @@ func (f *MemoryFile) Write(p []byte) (int, error) {
 	end := f.pos + int64(len(p))
 	if end > int64(len(f.data)) {
 		newLen := end
-		if cap(f.data) > 0 && newLen < int64(cap(f.data))*2 {
-			newLen = int64(cap(f.data)) * 2
+		if newLen < int64(len(f.data))*2 {
+			newLen = int64(len(f.data)) * 2
 		}
 		buf := make([]byte, newLen)
 		copy(buf, f.data)

@@ -10,7 +10,7 @@ import (
 
 var initCmd = &cobra.Command{
 	Use:   "init <name> <public-key>",
-	Short: "Display vault contents",
+	Short: "Create a new vault",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name, pub, err := parsePublicKey(args[1])

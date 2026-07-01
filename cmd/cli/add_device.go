@@ -27,6 +27,9 @@ func parsePublicKey(token string) (string, [32]byte, error) {
 	var name string
 	if len(tokenRaw) > 32 {
 		nameLen := binary.BigEndian.Uint16(tokenRaw[32:34])
+		if 34+int(nameLen) > len(tokenRaw) {
+			return "", [32]byte{}, fmt.Errorf("invalid token: name length %d exceeds token size %d", nameLen, len(tokenRaw))
+		}
 		name = string(tokenRaw[34 : 34+nameLen])
 	}
 	return name, pub, nil
