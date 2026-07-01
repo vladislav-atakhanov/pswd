@@ -1,6 +1,7 @@
 package vault
 
 import (
+	"bytes"
 	"encoding/binary"
 	"io"
 
@@ -33,39 +34,34 @@ func (v *Vault) saveBody(w io.Writer) error {
 		spans[id] = Span{Length: n, Start: cursor}
 		cursor += n
 	}
-	read, write := io.Pipe()
-	defer read.Close()
-	go func(w io.WriteCloser) error {
-		defer w.Close()
-		if err := binary.Write(w, binary.BigEndian, uint32(len(v.Content))); err != nil {
+	var indexBuf bytes.Buffer
+	if err := binary.Write(&indexBuf, binary.BigEndian, uint32(len(v.Content))); err != nil {
+		return err
+	}
+	for id, i := range v.Content {
+		if _, err := indexBuf.Write(id[:]); err != nil {
 			return err
 		}
-		for id, i := range v.Content {
-			if _, err := w.Write(id[:]); err != nil {
-				return err
-			}
-			if err := binary.Write(w, binary.BigEndian, i.LastUpdate); err != nil {
-				return err
-			}
-			span := spans[id]
-			if err := binary.Write(w, binary.BigEndian, uint32(span.Start)); err != nil {
-				return err
-			}
-			if err := binary.Write(w, binary.BigEndian, uint32(span.Length)); err != nil {
-				return err
-			}
-			labelBytes := []byte(i.Label)
-			if err := binary.Write(w, binary.BigEndian, uint16(len(labelBytes))); err != nil {
-				return err
-			}
-			if _, err := w.Write(labelBytes); err != nil {
-				return err
-			}
+		if err := binary.Write(&indexBuf, binary.BigEndian, i.LastUpdate); err != nil {
+			return err
 		}
-		return nil
-	}(write)
+		span := spans[id]
+		if err := binary.Write(&indexBuf, binary.BigEndian, uint32(span.Start)); err != nil {
+			return err
+		}
+		if err := binary.Write(&indexBuf, binary.BigEndian, uint32(span.Length)); err != nil {
+			return err
+		}
+		labelBytes := []byte(i.Label)
+		if err := binary.Write(&indexBuf, binary.BigEndian, uint16(len(labelBytes))); err != nil {
+			return err
+		}
+		if _, err := indexBuf.Write(labelBytes); err != nil {
+			return err
+		}
+	}
 
-	n, err := crypto.EncryptStream(w, read, keys)
+	n, err := crypto.EncryptStream(w, &indexBuf, keys)
 	if err != nil {
 		return err
 	}
