@@ -10,6 +10,11 @@ import (
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
+var (
+	ErrWrongPassword  = errors.New("wrong password or corrupted key file")
+	ErrInvalidKeyFile = errors.New("invalid encrypted key length")
+)
+
 const (
 	SaltLen  = 16
 	NonceLen = chacha20poly1305.NonceSizeX
@@ -49,7 +54,7 @@ func EncryptPrivateKey(priv [32]byte, password []byte) ([]byte, error) {
 
 func DecryptPrivateKey(data []byte, password []byte) ([32]byte, error) {
 	if len(data) < SaltLen+NonceLen+KeyLen+chacha20poly1305.Overhead {
-		return [32]byte{}, errors.New("invalid encrypted key length")
+		return [32]byte{}, ErrInvalidKeyFile
 	}
 
 	salt := data[:SaltLen]
@@ -68,7 +73,7 @@ func DecryptPrivateKey(data []byte, password []byte) ([32]byte, error) {
 
 	plaintext, err := aead.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return [32]byte{}, errors.New("wrong password or corrupted key file")
+		return [32]byte{}, ErrWrongPassword
 	}
 
 	var priv [32]byte

@@ -3,11 +3,19 @@ package vault
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 
 	"github.com/vladislav-atakhanov/pswd/internal/crypto"
 	"github.com/vladislav-atakhanov/pswd/internal/uuid"
+)
+
+var (
+	ErrAccessDenied   = errors.New("access denied")
+	ErrNotFound       = errors.New("password not found")
+	ErrDeviceExists   = errors.New("device already in vault")
+	ErrDeviceNotFound = errors.New("device not found")
 )
 
 type Item struct {
@@ -107,7 +115,7 @@ func (v *Vault) decrypt(r io.Reader, out io.Writer, privateKey [32]byte) error {
 		}
 	}
 	if index == -1 {
-		return fmt.Errorf("access denied")
+		return ErrAccessDenied
 	}
 	if err := crypto.DecryptStream(out, r, privateKey, len(v.Devices), index); err != nil {
 		return err
@@ -118,7 +126,7 @@ func (v *Vault) decrypt(r io.Reader, out io.Writer, privateKey [32]byte) error {
 func (v *Vault) Read(r io.ReaderAt, id contentKey, privateKey [32]byte) (io.Reader, error) {
 	item, ok := v.content[id]
 	if !ok {
-		return nil, fmt.Errorf("password %s not found", id.String())
+		return nil, fmt.Errorf("%w: %s", ErrNotFound, id.String())
 	}
 	if item.content != nil {
 		return item.content, nil

@@ -64,7 +64,7 @@ func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, pr
 	v.Full = true
 	for _, d := range v.Devices {
 		if d.Name() == label {
-			return fmt.Errorf("device %s already in vault", label)
+			return fmt.Errorf("%w: %s", ErrDeviceExists, label)
 		}
 	}
 	content := make(map[contentKey]Item, len(v.content))
@@ -102,7 +102,7 @@ func (v *Vault) RemoveDevice(publicKey [32]byte, r io.ReaderAt, privateKey [32]b
 		}
 	}
 	if index == -1 {
-		return fmt.Errorf("device not found")
+		return ErrDeviceNotFound
 	}
 
 	v.Full = true
