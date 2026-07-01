@@ -77,6 +77,20 @@ type Writer interface {
 }
 
 func (v *Vault) Save(w Writer) error {
+	if !v.Full {
+		for _, s := range v.orphanedSpans {
+			offset := int64(v.HeaderLength() + s.Start)
+			if _, err := w.Seek(offset, io.SeekStart); err != nil {
+				return err
+			}
+			zeroBuf := make([]byte, s.Length)
+			if _, err := w.Write(zeroBuf); err != nil {
+				return err
+			}
+		}
+	}
+	v.orphanedSpans = nil
+
 	if v.Full {
 		if _, err := w.Seek(0, io.SeekStart); err != nil {
 			return err
@@ -92,6 +106,16 @@ func (v *Vault) Save(w Writer) error {
 	}
 	if err := v.saveBody(w); err != nil {
 		return err
+	}
+
+	pos, err := w.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return err
+	}
+	if f, ok := w.(interface{ Truncate(int64) error }); ok {
+		if err := f.Truncate(pos); err != nil {
+			return err
+		}
 	}
 
 	return nil

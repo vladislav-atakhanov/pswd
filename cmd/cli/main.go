@@ -128,6 +128,7 @@ func main() {
 	// v.Add(strings.NewReader("mail"), "mail.ru")
 	// v.Add(strings.NewReader("pass"), "github")
 	// v.Add(strings.NewReader("pswd"), "youtube")
+	// v.Remove(must(uuid.UUIDv4FromString("c1e0e14d-79ca-4810-b7bf-913bd8e0a989")))
 	for id, i := range v.Content {
 		content := must(v.Read(file, id, priv))
 		fmt.Println(i.Label, "-", content)

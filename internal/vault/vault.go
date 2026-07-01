@@ -26,13 +26,14 @@ type Vault struct {
 
 	dataEnd int
 	Full    bool
+
+	orphanedSpans []Span
 }
 
 func New() *Vault {
 	return new(Vault{
 		Content: make(map[contentKey]Item),
 	})
-
 }
 func Open(r io.ReadSeeker, size int, privateKey [32]byte) (*Vault, error) {
 	if _, err := r.Seek(0, io.SeekStart); err != nil {
