@@ -40,12 +40,12 @@ func TestRemoveOneOfTwo(t *testing.T) {
 	if err != nil {
 		t.Fatalf("first open: %v", err)
 	}
-	if len(v2.Content) != 2 {
-		t.Fatalf("expected 2 entries, got %d", len(v2.Content))
+	if len(v2.content) != 2 {
+		t.Fatalf("expected 2 entries, got %d", len(v2.content))
 	}
 
 	var id uuid.V4
-	for id = range v2.Content {
+	for id = range v2.content {
 		break
 	}
 	if err := v2.Remove(id); err != nil {
@@ -67,8 +67,8 @@ func TestRemoveOneOfTwo(t *testing.T) {
 	if err != nil {
 		t.Fatalf("second open (after remove+save): %v", err)
 	}
-	if len(v3.Content) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(v3.Content))
+	if len(v3.content) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(v3.content))
 	}
 }
 
@@ -103,13 +103,13 @@ func TestRemoveAll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("first open: %v", err)
 	}
-	for id := range v2.Content {
+	for id := range v2.content {
 		if err := v2.Remove(id); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if len(v2.Content) != 0 {
-		t.Fatalf("expected 0 entries after remove all, got %d", len(v2.Content))
+	if len(v2.content) != 0 {
+		t.Fatalf("expected 0 entries after remove all, got %d", len(v2.content))
 	}
 
 	if _, err := mf.Seek(0, 0); err != nil {
@@ -127,8 +127,8 @@ func TestRemoveAll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reopen after remove all: %v", err)
 	}
-	if len(v3.Content) != 0 {
-		t.Fatalf("expected empty vault, got %d", len(v3.Content))
+	if len(v3.content) != 0 {
+		t.Fatalf("expected empty vault, got %d", len(v3.content))
 	}
 }
 
@@ -160,7 +160,7 @@ func TestRemoveThenAdd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("first open: %v", err)
 	}
-	for id := range v2.Content {
+	for id := range v2.content {
 		if err := v2.Remove(id); err != nil {
 			t.Fatal(err)
 		}
@@ -185,10 +185,10 @@ func TestRemoveThenAdd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reopen after remove+add: %v", err)
 	}
-	if len(v3.Content) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(v3.Content))
+	if len(v3.content) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(v3.content))
 	}
-	for _, item := range v3.Content {
+	for _, item := range v3.content {
 		if item.Label != "newentry" {
 			t.Fatalf("expected label 'newentry', got %q", item.Label)
 		}

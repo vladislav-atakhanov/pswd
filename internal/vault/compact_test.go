@@ -44,7 +44,7 @@ func TestCompact(t *testing.T) {
 		t.Fatal(err)
 	}
 	var idToRemove contentKey
-	for id := range v2.Content {
+	for id := range v2.content {
 		idToRemove = id
 		break
 	}
@@ -91,10 +91,10 @@ func TestCompact(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reopen after compact: %v", err)
 	}
-	if len(v4.Content) != 2 {
-		t.Fatalf("expected 2 entries, got %d", len(v4.Content))
+	if len(v4.content) != 2 {
+		t.Fatalf("expected 2 entries, got %d", len(v4.content))
 	}
-	for id := range v4.Content {
+	for id := range v4.content {
 		r, err := v4.Read(mf, id, priv)
 		if err != nil {
 			t.Fatalf("read after compact: %v", err)

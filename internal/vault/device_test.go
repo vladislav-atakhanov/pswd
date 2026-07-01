@@ -80,8 +80,8 @@ func TestRemoveDevice(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open with priv2 after removal: %v", err)
 	}
-	if len(v4.Content) != 2 {
-		t.Fatalf("expected 2 entries, got %d", len(v4.Content))
+	if len(v4.content) != 2 {
+		t.Fatalf("expected 2 entries, got %d", len(v4.content))
 	}
 
 	// Open with priv1 — must fail (device removed)
@@ -147,7 +147,7 @@ func TestAddDeviceBothCanRead(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open with priv1 after AddDevice: %v", err)
 	}
-	for id := range v3.Content {
+	for id := range v3.content {
 		r, err := v3.Read(mf, id, priv1)
 		if err != nil {
 			t.Fatalf("read entry with priv1: %v", err)
@@ -167,7 +167,7 @@ func TestAddDeviceBothCanRead(t *testing.T) {
 		t.Fatalf("open with priv2 after AddDevice: %v", err)
 	}
 	expectedLabels := map[string]bool{"entry1": true, "entry2": true}
-	for id, item := range v4.Content {
+	for id, item := range v4.content {
 		r, err := v4.Read(mf, id, priv2)
 		if err != nil {
 			t.Fatalf("read entry with priv2: %v", err)

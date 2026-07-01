@@ -45,7 +45,7 @@ func (v *Vault) read(r io.ReadSeeker, size int, privateKey [32]byte) error {
 		return err
 	}
 
-	v.Content = make(map[contentKey]Item, count)
+	v.content = make(map[contentKey]Item, count)
 	for i := uint32(0); i < count; i++ {
 		var id contentKey
 		if _, err := io.ReadFull(reader, id[:]); err != nil {
@@ -75,7 +75,7 @@ func (v *Vault) read(r io.ReadSeeker, size int, privateKey [32]byte) error {
 			return err
 		}
 
-		v.Content[id] = Item{
+		v.content[id] = Item{
 			Label:      string(label),
 			LastUpdate: lastUpdate,
 			start:      int(start),

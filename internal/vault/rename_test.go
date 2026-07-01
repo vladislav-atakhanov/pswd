@@ -37,7 +37,7 @@ func TestRename(t *testing.T) {
 		t.Fatalf("first open: %v", err)
 	}
 	var id uuid.V4
-	for id = range v2.Content {
+	for id = range v2.content {
 		break
 	}
 	if err := v2.Rename(id, "renamed-entry"); err != nil {
@@ -59,10 +59,10 @@ func TestRename(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reopen after rename: %v", err)
 	}
-	if len(v3.Content) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(v3.Content))
+	if len(v3.content) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(v3.content))
 	}
-	for _, item := range v3.Content {
+	for _, item := range v3.content {
 		if item.Label != "renamed-entry" {
 			t.Fatalf("expected label 'renamed-entry', got %q", item.Label)
 		}

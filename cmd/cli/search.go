@@ -15,9 +15,9 @@ var searchCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: withVault(func(ctx *vaultContext, args []string) error {
 		query := strings.ToLower(args[0])
-		for id, item := range ctx.Vault.Content {
-			if strings.Contains(strings.ToLower(item.Label), query) {
-				fmt.Printf("%s - %s\n", item.Label, hex.EncodeToString(id[:]))
+		for _, entry := range ctx.Vault.List() {
+			if strings.Contains(strings.ToLower(entry.Label), query) {
+				fmt.Printf("%s - %s\n", entry.Label, hex.EncodeToString(entry.ID[:]))
 			}
 		}
 		return nil

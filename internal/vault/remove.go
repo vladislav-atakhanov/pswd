@@ -7,7 +7,7 @@ import (
 )
 
 func (v *Vault) Remove(id contentKey) error {
-	item, ok := v.Content[id]
+	item, ok := v.content[id]
 	if !ok {
 		return nil
 	}
@@ -20,6 +20,6 @@ func (v *Vault) Remove(id contentKey) error {
 		mem.ZeroBytes(buf.Bytes())
 	}
 
-	delete(v.Content, id)
+	delete(v.content, id)
 	return nil
 }

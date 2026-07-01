@@ -9,8 +9,8 @@ type Entry struct {
 }
 
 func (v *Vault) List() []Entry {
-	entries := make([]Entry, 0, len(v.Content))
-	for id, item := range v.Content {
+	entries := make([]Entry, 0, len(v.content))
+	for id, item := range v.content {
 		entries = append(entries, Entry{
 			ID:         id,
 			Label:      item.Label,

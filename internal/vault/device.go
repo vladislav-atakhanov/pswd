@@ -67,8 +67,8 @@ func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, pr
 			return fmt.Errorf("Device %s already in vault", label)
 		}
 	}
-	content := make(map[contentKey]Item, len(v.Content))
-	for id, c := range v.Content {
+	content := make(map[contentKey]Item, len(v.content))
+	for id, c := range v.content {
 		if c.content != nil {
 			content[id] = c
 			continue
@@ -87,7 +87,7 @@ func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, pr
 			content:    bytes.NewReader(pass),
 		}
 	}
-	v.Content = content
+	v.content = content
 	v.Devices = append(v.Devices, newDevice(newPublicKey, label))
 	return nil
 }
@@ -107,8 +107,8 @@ func (v *Vault) RemoveDevice(publicKey [32]byte, r io.ReaderAt, privateKey [32]b
 
 	v.Full = true
 
-	content := make(map[contentKey]Item, len(v.Content))
-	for id, c := range v.Content {
+	content := make(map[contentKey]Item, len(v.content))
+	for id, c := range v.content {
 		if c.content != nil {
 			content[id] = c
 			continue
@@ -127,7 +127,7 @@ func (v *Vault) RemoveDevice(publicKey [32]byte, r io.ReaderAt, privateKey [32]b
 			content:    bytes.NewReader(pass),
 		}
 	}
-	v.Content = content
+	v.content = content
 
 	v.Devices = append(v.Devices[:index], v.Devices[index+1:]...)
 	return nil

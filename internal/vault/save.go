@@ -21,7 +21,7 @@ func (v *Vault) saveBody(w io.Writer) error {
 
 	cursor := v.dataEnd - v.HeaderLength()
 	spans := make(map[contentKey]Span)
-	for id, i := range v.Content {
+	for id, i := range v.content {
 		if i.content == nil {
 			spans[id] = Span{Length: i.length, Start: i.start}
 			continue
@@ -35,10 +35,10 @@ func (v *Vault) saveBody(w io.Writer) error {
 		cursor += n
 	}
 	var indexBuf bytes.Buffer
-	if err := binary.Write(&indexBuf, binary.BigEndian, uint32(len(v.Content))); err != nil {
+	if err := binary.Write(&indexBuf, binary.BigEndian, uint32(len(v.content))); err != nil {
 		return err
 	}
-	for id, i := range v.Content {
+	for id, i := range v.content {
 		if _, err := indexBuf.Write(id[:]); err != nil {
 			return err
 		}

@@ -22,7 +22,7 @@ type contentKey = uuid.V4
 // Vault Паспорт всего нашего хранилища в RAM
 type Vault struct {
 	Devices []Device
-	Content map[contentKey]Item
+	content map[contentKey]Item
 
 	dataEnd int
 	Full    bool
@@ -33,7 +33,7 @@ type Vault struct {
 func New(publicKey [32]byte, name string) *Vault {
 	return &Vault{
 		Devices: []Device{newDevice(publicKey, name)},
-		Content: make(map[contentKey]Item),
+		content: make(map[contentKey]Item),
 		Full:    true,
 	}
 }
@@ -53,7 +53,7 @@ func Open(r io.ReadSeeker, size int, privateKey [32]byte) (*Vault, error) {
 		return nil, err
 	}
 	v := new(Vault{Devices: devices,
-		Content: make(map[contentKey]Item),
+		content: make(map[contentKey]Item),
 	})
 	if err := v.read(r, size, privateKey); err != nil {
 		return nil, err
@@ -85,8 +85,8 @@ func (v *Vault) Print(b io.Writer) error {
 		key := d.PublicKey()
 		fmt.Fprintf(b, "\t%s %s\n", d.Name(), base64.URLEncoding.EncodeToString(key[:]))
 	}
-	fmt.Fprintf(b, "Passwords (%d):\n", len(v.Content))
-	for id, i := range v.Content {
+	fmt.Fprintf(b, "Passwords (%d):\n", len(v.content))
+	for id, i := range v.content {
 		fmt.Fprintf(b, "\t%s | %s (%d:%d)\n", id.String(), i.Label, i.start, i.length)
 	}
 	return nil
@@ -116,7 +116,7 @@ func (v *Vault) decrypt(r io.Reader, out io.Writer, privateKey [32]byte) error {
 }
 
 func (v *Vault) Read(r io.ReaderAt, id contentKey, privateKey [32]byte) (io.Reader, error) {
-	item, ok := v.Content[id]
+	item, ok := v.content[id]
 	if !ok {
 		return nil, fmt.Errorf("Password %s not found", id.String())
 	}

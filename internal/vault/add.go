@@ -12,7 +12,7 @@ func (v *Vault) Add(plain io.Reader, label string) error {
 	if err != nil {
 		return err
 	}
-	v.Content[id] = Item{
+	v.content[id] = Item{
 		content:    plain,
 		Label:      label,
 		LastUpdate: uint64(time.Now().Unix()),

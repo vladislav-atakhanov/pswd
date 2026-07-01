@@ -6,7 +6,7 @@ import (
 )
 
 func (v *Vault) Compact(r io.ReaderAt, privateKey [32]byte) error {
-	for id, item := range v.Content {
+	for id, item := range v.content {
 		if item.content != nil {
 			continue
 		}
@@ -19,7 +19,7 @@ func (v *Vault) Compact(r io.ReaderAt, privateKey [32]byte) error {
 			return err
 		}
 		item.content = bytes.NewReader(pass)
-		v.Content[id] = item
+		v.content[id] = item
 	}
 
 	v.Full = true
