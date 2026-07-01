@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 
+	"github.com/vladislav-atakhanov/pswd/internal/mem"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/chacha20poly1305"
 )
@@ -15,13 +16,14 @@ const (
 	KeyLen   = 32
 )
 
-func EncryptPrivateKey(priv [32]byte, password string) ([]byte, error) {
+func EncryptPrivateKey(priv [32]byte, password []byte) ([]byte, error) {
 	salt := make([]byte, SaltLen)
 	if _, err := io.ReadFull(rand.Reader, salt); err != nil {
 		return nil, err
 	}
 
-	derivedKey := argon2.IDKey([]byte(password), salt, 3, 64*1024, 4, KeyLen)
+	derivedKey := argon2.IDKey(password, salt, 3, 64*1024, 4, KeyLen)
+	defer mem.ZeroBytes(derivedKey)
 
 	aead, err := chacha20poly1305.NewX(derivedKey)
 	if err != nil {
@@ -43,7 +45,7 @@ func EncryptPrivateKey(priv [32]byte, password string) ([]byte, error) {
 	return result, nil
 }
 
-func DecryptPrivateKey(data []byte, password string) ([32]byte, error) {
+func DecryptPrivateKey(data []byte, password []byte) ([32]byte, error) {
 	if len(data) < SaltLen+NonceLen+KeyLen+chacha20poly1305.Overhead {
 		return [32]byte{}, errors.New("invalid encrypted key length")
 	}
@@ -52,7 +54,8 @@ func DecryptPrivateKey(data []byte, password string) ([32]byte, error) {
 	nonce := data[SaltLen : SaltLen+NonceLen]
 	ciphertext := data[SaltLen+NonceLen:]
 
-	derivedKey := argon2.IDKey([]byte(password), salt, 3, 64*1024, 4, KeyLen)
+	derivedKey := argon2.IDKey(password, salt, 3, 64*1024, 4, KeyLen)
+	defer mem.ZeroBytes(derivedKey)
 
 	aead, err := chacha20poly1305.NewX(derivedKey)
 	if err != nil {

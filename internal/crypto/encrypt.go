@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"io"
 
+	"github.com/vladislav-atakhanov/pswd/internal/mem"
 	"golang.org/x/crypto/chacha20"
 )
 
@@ -28,6 +29,7 @@ func EncryptStream(out io.Writer, plainText io.Reader, publicKeys [][32]byte) (i
 	if _, err := io.ReadFull(rand.Reader, dataKey); err != nil {
 		return 0, err
 	}
+	defer mem.ZeroBytes(dataKey)
 
 	ephemeralPriv, err := ecdh.X25519().GenerateKey(rand.Reader)
 	if err != nil {
@@ -40,6 +42,7 @@ func EncryptStream(out io.Writer, plainText io.Reader, publicKeys [][32]byte) (i
 	}
 
 	macKey := sha256.Sum256(append(dataKey, []byte("mac")...))
+	defer mem.ZeroArray32(&macKey)
 	hmacSigner := hmac.New(sha256.New, macKey[:])
 	hmacSigner.Write(ephemeralPubBytes)
 

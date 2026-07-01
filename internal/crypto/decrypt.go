@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/vladislav-atakhanov/pswd/internal/mem"
 	"golang.org/x/crypto/chacha20"
 )
 
@@ -15,6 +16,8 @@ import (
 // totalDevices — общее количество устройств, записанное в заголовке файла.
 // myDeviceIndex — индекс текущего устройства в списке (0, 1, 2...), чтобы понять, какой ключ забирать.
 func DecryptStream(out io.Writer, encryptedStream io.Reader, privBytes [32]byte, totalDevices int, myDeviceIndex int) error {
+	defer mem.ZeroArray32(&privBytes)
+
 	// 1. Читаем эфемерный публичный ключ (первые 32 байта)
 	ephemeralPubBytes := make([]byte, 32)
 	if _, err := io.ReadFull(encryptedStream, ephemeralPubBytes); err != nil {
@@ -65,9 +68,11 @@ func DecryptStream(out io.Writer, encryptedStream io.Reader, privBytes [32]byte,
 
 	dataKey := make([]byte, 32)
 	cipherKey.XORKeyStream(dataKey, myEncryptedKey)
+	defer mem.ZeroBytes(dataKey)
 
 	// Теперь, когда у нас есть dataKey, мы можем запустить валидный HMAC!
 	macKey := sha256.Sum256(append(dataKey, []byte("mac")...))
+	defer mem.ZeroArray32(&macKey)
 	hmacSigner := hmac.New(sha256.New, macKey[:])
 	hmacSigner.Write(ephemeralPubBytes)
 

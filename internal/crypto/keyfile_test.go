@@ -13,7 +13,7 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 		key[i] = byte(i)
 	}
 
-	password := "correct horse battery staple"
+	password := []byte("correct horse battery staple")
 
 	encrypted, err := EncryptPrivateKey(key, password)
 	if err != nil {
@@ -36,12 +36,12 @@ func TestDecryptWrongPassword(t *testing.T) {
 		key[i] = byte(i)
 	}
 
-	encrypted, err := EncryptPrivateKey(key, "correct password")
+	encrypted, err := EncryptPrivateKey(key, []byte("correct password"))
 	if err != nil {
 		t.Fatalf("EncryptPrivateKey: %v", err)
 	}
 
-	_, err = DecryptPrivateKey(encrypted, "wrong password")
+	_, err = DecryptPrivateKey(encrypted, []byte("wrong password"))
 	if err == nil {
 		t.Fatal("expected error for wrong password, got nil")
 	}
@@ -53,14 +53,14 @@ func TestDecryptCorruptedCiphertext(t *testing.T) {
 		key[i] = byte(i)
 	}
 
-	encrypted, err := EncryptPrivateKey(key, "password")
+	encrypted, err := EncryptPrivateKey(key, []byte("password"))
 	if err != nil {
 		t.Fatalf("EncryptPrivateKey: %v", err)
 	}
 
 	encrypted[len(encrypted)-1] ^= 0xff
 
-	_, err = DecryptPrivateKey(encrypted, "password")
+	_, err = DecryptPrivateKey(encrypted, []byte("password"))
 	if err == nil {
 		t.Fatal("expected error for corrupted ciphertext, got nil")
 	}
@@ -72,12 +72,12 @@ func TestDecryptTruncatedData(t *testing.T) {
 		key[i] = byte(i)
 	}
 
-	encrypted, err := EncryptPrivateKey(key, "password")
+	encrypted, err := EncryptPrivateKey(key, []byte("password"))
 	if err != nil {
 		t.Fatalf("EncryptPrivateKey: %v", err)
 	}
 
-	_, err = DecryptPrivateKey(encrypted[:10], "password")
+	_, err = DecryptPrivateKey(encrypted[:10], []byte("password"))
 	if err == nil {
 		t.Fatal("expected error for truncated data, got nil")
 	}
@@ -89,12 +89,12 @@ func TestEmptyPassword(t *testing.T) {
 		key[i] = byte(i)
 	}
 
-	encrypted, err := EncryptPrivateKey(key, "")
+	encrypted, err := EncryptPrivateKey(key, []byte{})
 	if err != nil {
 		t.Fatalf("EncryptPrivateKey: %v", err)
 	}
 
-	decrypted, err := DecryptPrivateKey(encrypted, "")
+	decrypted, err := DecryptPrivateKey(encrypted, []byte{})
 	if err != nil {
 		t.Fatalf("DecryptPrivateKey: %v", err)
 	}
@@ -110,7 +110,7 @@ func TestLongPassword(t *testing.T) {
 		key[i] = byte(i)
 	}
 
-	password := string(make([]byte, 1000))
+	password := make([]byte, 1000)
 
 	encrypted, err := EncryptPrivateKey(key, password)
 	if err != nil {
@@ -133,12 +133,12 @@ func TestEncryptUniqueOutput(t *testing.T) {
 		key[i] = byte(i)
 	}
 
-	enc1, err := EncryptPrivateKey(key, "password")
+	enc1, err := EncryptPrivateKey(key, []byte("password"))
 	if err != nil {
 		t.Fatalf("EncryptPrivateKey: %v", err)
 	}
 
-	enc2, err := EncryptPrivateKey(key, "password")
+	enc2, err := EncryptPrivateKey(key, []byte("password"))
 	if err != nil {
 		t.Fatalf("EncryptPrivateKey: %v", err)
 	}
@@ -154,7 +154,7 @@ func TestEncryptOutputLength(t *testing.T) {
 		key[i] = byte(i)
 	}
 
-	encrypted, err := EncryptPrivateKey(key, "password")
+	encrypted, err := EncryptPrivateKey(key, []byte("password"))
 	if err != nil {
 		t.Fatalf("EncryptPrivateKey: %v", err)
 	}
@@ -166,7 +166,7 @@ func TestEncryptOutputLength(t *testing.T) {
 }
 
 func TestDecryptInvalidLength(t *testing.T) {
-	_, err := DecryptPrivateKey([]byte{1, 2, 3}, "")
+	_, err := DecryptPrivateKey([]byte{1, 2, 3}, []byte{})
 	if err == nil {
 		t.Fatal("expected error for invalid length, got nil")
 	}
