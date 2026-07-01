@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"golang.org/x/term"
 
 	"github.com/vladislav-atakhanov/pswd/internal/uuid"
+	"github.com/vladislav-atakhanov/pswd/internal/vault"
 )
 
 func readPassword(prompt string) ([]byte, error) {
@@ -51,6 +53,9 @@ var rootCmd = &cobra.Command{
 
 		r, err := ctx.Vault.Read(ctx.File, id, ctx.Priv)
 		if err != nil {
+			if errors.Is(err, vault.ErrNotFound) {
+				return fmt.Errorf("password %q not found", hexID)
+			}
 			return fmt.Errorf("read password: %w", err)
 		}
 

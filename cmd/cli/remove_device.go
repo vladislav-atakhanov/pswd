@@ -2,9 +2,12 @@ package main
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/vladislav-atakhanov/pswd/internal/vault"
 )
 
 var removeDeviceCmd = &cobra.Command{
@@ -36,6 +39,9 @@ var removeDeviceCmd = &cobra.Command{
 		}
 
 		if err := ctx.Vault.RemoveDevice(pub, ctx.File, ctx.Priv); err != nil {
+			if errors.Is(err, vault.ErrDeviceNotFound) {
+				return fmt.Errorf("device %s not found in vault", hex.EncodeToString(raw))
+			}
 			return fmt.Errorf("remove device: %w", err)
 		}
 		if err := ctx.Vault.Save(ctx.File); err != nil {

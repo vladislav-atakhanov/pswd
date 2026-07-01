@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/vladislav-atakhanov/pswd/internal/uuid"
+	"github.com/vladislav-atakhanov/pswd/internal/vault"
 )
 
 var renameCmd = &cobra.Command{
@@ -25,6 +27,9 @@ var renameCmd = &cobra.Command{
 		copy(id[:], raw)
 
 		if err := ctx.Vault.Rename(id, args[1]); err != nil {
+			if errors.Is(err, vault.ErrNotFound) {
+				return fmt.Errorf("password %q not found", hex.EncodeToString(raw))
+			}
 			return fmt.Errorf("rename password: %w", err)
 		}
 		if err := ctx.Vault.Save(ctx.File); err != nil {

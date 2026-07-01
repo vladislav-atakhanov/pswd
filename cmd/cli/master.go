@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -33,6 +34,9 @@ var masterCmd = &cobra.Command{
 
 		priv, err := crypto.DecryptPrivateKey(data, oldPassword)
 		if err != nil {
+			if errors.Is(err, crypto.ErrWrongPassword) {
+				return fmt.Errorf("wrong current password")
+			}
 			return fmt.Errorf("decrypt private key: %w", err)
 		}
 		defer mem.ZeroArray32(&priv)

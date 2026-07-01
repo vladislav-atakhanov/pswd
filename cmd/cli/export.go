@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"os"
 
@@ -37,6 +38,9 @@ var exportCmd = &cobra.Command{
 
 		priv, err := crypto.DecryptPrivateKey(data, password)
 		if err != nil {
+			if errors.Is(err, crypto.ErrWrongPassword) {
+				return fmt.Errorf("wrong password: check your master password or key file")
+			}
 			return fmt.Errorf("decrypt private key: %w", err)
 		}
 		defer mem.ZeroArray32(&priv)

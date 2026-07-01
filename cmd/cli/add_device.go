@@ -3,9 +3,12 @@ package main
 import (
 	"encoding/base64"
 	"encoding/binary"
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/vladislav-atakhanov/pswd/internal/vault"
 )
 
 func parsePublicKey(token string) (string, [32]byte, error) {
@@ -40,6 +43,9 @@ var addDeviceCmd = &cobra.Command{
 			return err
 		}
 		if err := ctx.Vault.AddDevice(pub, name, ctx.File, ctx.Priv); err != nil {
+			if errors.Is(err, vault.ErrDeviceExists) {
+				return fmt.Errorf("device %q is already in the vault", name)
+			}
 			return fmt.Errorf("add device: %w", err)
 		}
 		if err := ctx.Vault.Save(ctx.File); err != nil {

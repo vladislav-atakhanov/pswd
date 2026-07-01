@@ -54,6 +54,9 @@ func openVault(cmd *cobra.Command) (*vaultContext, error) {
 
 	priv, err := crypto.DecryptPrivateKey(data, password)
 	if err != nil {
+		if errors.Is(err, crypto.ErrWrongPassword) {
+			return nil, fmt.Errorf("wrong password: check your master password or key file")
+		}
 		return nil, fmt.Errorf("decrypt private key: %w", err)
 	}
 
@@ -74,6 +77,9 @@ func openVault(cmd *cobra.Command) (*vaultContext, error) {
 	if err != nil {
 		file.Close()
 		mem.ZeroArray32(&priv)
+		if errors.Is(err, vault.ErrAccessDenied) {
+			return nil, fmt.Errorf("access denied: your key is not authorized for this vault")
+		}
 		return nil, fmt.Errorf("open vault: %w", err)
 	}
 
