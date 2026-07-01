@@ -2,13 +2,12 @@ package crypto
 
 import (
 	"crypto/ecdh"
-	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
+	"encoding/binary"
 	"io"
 
 	"github.com/vladislav-atakhanov/pswd/internal/mem"
-	"golang.org/x/crypto/chacha20"
+	"golang.org/x/crypto/chacha20poly1305"
 )
 
 type countingWriter struct {
@@ -24,6 +23,11 @@ func (cw *countingWriter) Write(p []byte) (int, error) {
 
 func EncryptStream(out io.Writer, plainText io.Reader, publicKeys [][32]byte) (int, error) {
 	cw := &countingWriter{w: out}
+
+	plain, err := io.ReadAll(plainText)
+	if err != nil {
+		return 0, err
+	}
 
 	dataKey := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, dataKey); err != nil {
@@ -43,12 +47,10 @@ func EncryptStream(out io.Writer, plainText io.Reader, publicKeys [][32]byte) (i
 		return cw.count, err
 	}
 
-	macKey := sha256.Sum256(append(dataKey, []byte("mac")...))
-	defer mem.ZeroArray32(&macKey)
-	hmacSigner := hmac.New(sha256.New, macKey[:])
-	hmacSigner.Write(ephemeralPubBytes)
-
-	teeOut := io.MultiWriter(cw, hmacSigner)
+	numDevices := uint16(len(publicKeys))
+	if err := binary.Write(cw, binary.BigEndian, numDevices); err != nil {
+		return cw.count, err
+	}
 
 	for _, pubBytes := range publicKeys {
 		devicePub, err := ecdh.X25519().NewPublicKey(pubBytes[:])
@@ -61,52 +63,42 @@ func EncryptStream(out io.Writer, plainText io.Reader, publicKeys [][32]byte) (i
 			return cw.count, err
 		}
 
-		keyNonce := make([]byte, chacha20.NonceSize)
-		cipherKey, err := chacha20.NewUnauthenticatedCipher(sharedSecret, keyNonce)
+		aead, err := chacha20poly1305.New(sharedSecret)
 		if err != nil {
 			return cw.count, err
 		}
 
-		encryptedKey := make([]byte, 32)
-		cipherKey.XORKeyStream(encryptedKey, dataKey)
+		nonce := make([]byte, aead.NonceSize())
+		if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+			return cw.count, err
+		}
 
-		if _, err := teeOut.Write(encryptedKey); err != nil {
+		encryptedKey := aead.Seal(nil, nonce, dataKey, nil)
+
+		if _, err := cw.Write(nonce); err != nil {
+			return cw.count, err
+		}
+		if _, err := cw.Write(encryptedKey); err != nil {
 			return cw.count, err
 		}
 	}
 
-	mainNonce := make([]byte, chacha20.NonceSize)
-	if _, err := io.ReadFull(rand.Reader, mainNonce); err != nil {
-		return cw.count, err
-	}
-	if _, err := teeOut.Write(mainNonce); err != nil {
-		return cw.count, err
-	}
-
-	mainCipher, err := chacha20.NewUnauthenticatedCipher(dataKey, mainNonce)
+	aead, err := chacha20poly1305.New(dataKey)
 	if err != nil {
 		return cw.count, err
 	}
 
-	buf := make([]byte, 4096)
-	for {
-		n, err := plainText.Read(buf)
-		if n > 0 {
-			mainCipher.XORKeyStream(buf[:n], buf[:n])
-			if _, err := teeOut.Write(buf[:n]); err != nil {
-				return cw.count, err
-			}
-		}
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return cw.count, err
-		}
+	mainNonce := make([]byte, aead.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, mainNonce); err != nil {
+		return cw.count, err
 	}
 
-	signature := hmacSigner.Sum(nil)
-	if _, err := cw.Write(signature); err != nil {
+	ciphertext := aead.Seal(nil, mainNonce, plain, nil)
+
+	if _, err := cw.Write(mainNonce); err != nil {
+		return cw.count, err
+	}
+	if _, err := cw.Write(ciphertext); err != nil {
 		return cw.count, err
 	}
 

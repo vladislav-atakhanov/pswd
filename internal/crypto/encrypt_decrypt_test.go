@@ -213,12 +213,8 @@ func TestTooFewDevices(t *testing.T) {
 
 	var out bytes.Buffer
 	err := DecryptStream(&out, bytes.NewReader(cipher), priv0, 1, 0)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if bytes.Equal(out.Bytes(), plain) {
-		t.Fatal("expected decrypted output to differ from plaintext when totalDevices is wrong")
+	if err == nil {
+		t.Fatal("expected error for mismatched device count, got nil")
 	}
 }
 
