@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 
@@ -51,7 +52,7 @@ var masterCmd = &cobra.Command{
 			return fmt.Errorf("password cannot be empty")
 		}
 
-		if string(newPassword) != string(confirm) {
+		if !bytes.Equal(newPassword, confirm) {
 			return fmt.Errorf("passwords do not match")
 		}
 

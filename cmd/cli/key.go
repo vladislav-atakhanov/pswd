@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 
@@ -39,7 +40,7 @@ var genkeyCmd = &cobra.Command{
 			return fmt.Errorf("password cannot be empty")
 		}
 
-		if string(password) != string(confirm) {
+		if !bytes.Equal(password, confirm) {
 			return fmt.Errorf("passwords do not match")
 		}
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -37,7 +38,7 @@ var addCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("read confirmation: %w", err)
 			}
-			if string(p1) != string(p2) {
+			if !bytes.Equal(p1, p2) {
 				return fmt.Errorf("passwords do not match")
 			}
 			plain = strings.NewReader(string(p1))
