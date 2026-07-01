@@ -16,14 +16,14 @@ func generateTestKeypair(t *testing.T) (priv, pub [32]byte) {
 	return priv, pub
 }
 
-func encryptOut(t *testing.T, plain []byte, pubKeys [][32]byte) []byte {
+func encryptOut(t *testing.T, plain []byte, pubKeys [][32]byte) ([]byte, int) {
 	t.Helper()
 	var buf bytes.Buffer
-	err := EncryptStream(&buf, bytes.NewReader(plain), pubKeys)
+	n, err := EncryptStream(&buf, bytes.NewReader(plain), pubKeys)
 	if err != nil {
 		t.Fatalf("EncryptStream: %v", err)
 	}
-	return buf.Bytes()
+	return buf.Bytes(), n
 }
 
 func decryptOut(t *testing.T, cipher []byte, priv [32]byte, totalDevices, idx int) ([]byte, error) {
@@ -37,7 +37,7 @@ func TestRoundTrip(t *testing.T) {
 	priv, pub := generateTestKeypair(t)
 	plain := []byte("Hello, World! This is a test message for round trip verification")
 
-	cipher := encryptOut(t, plain, [][32]byte{pub})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub})
 	result, err := decryptOut(t, cipher, priv, 1, 0)
 	if err != nil {
 		t.Fatalf("DecryptStream: %v", err)
@@ -52,14 +52,14 @@ func TestMultipleDevices(t *testing.T) {
 	n := 3
 	privs := make([][32]byte, n)
 	pubs := make([][32]byte, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		privs[i], pubs[i] = generateTestKeypair(t)
 	}
 
 	plain := []byte("Shared secret message for all devices")
-	cipher := encryptOut(t, plain, pubs)
+	cipher, _ := encryptOut(t, plain, pubs)
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		result, err := decryptOut(t, cipher, privs[i], n, i)
 		if err != nil {
 			t.Fatalf("device %d: DecryptStream: %v", i, err)
@@ -74,7 +74,7 @@ func TestEmptyPlaintext(t *testing.T) {
 	priv, pub := generateTestKeypair(t)
 	plain := []byte{}
 
-	cipher := encryptOut(t, plain, [][32]byte{pub})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub})
 	result, err := decryptOut(t, cipher, priv, 1, 0)
 	if err != nil {
 		t.Fatalf("DecryptStream: %v", err)
@@ -93,7 +93,7 @@ func TestLargeData(t *testing.T) {
 		t.Fatalf("rand.Read: %v", err)
 	}
 
-	cipher := encryptOut(t, plain, [][32]byte{pub})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub})
 	result, err := decryptOut(t, cipher, priv, 1, 0)
 	if err != nil {
 		t.Fatalf("DecryptStream: %v", err)
@@ -108,7 +108,7 @@ func TestSmallPayload(t *testing.T) {
 	priv, pub := generateTestKeypair(t)
 	plain := []byte("Hello!")
 
-	cipher := encryptOut(t, plain, [][32]byte{pub})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub})
 	result, err := decryptOut(t, cipher, priv, 1, 0)
 	if err != nil {
 		t.Fatalf("DecryptStream: %v", err)
@@ -116,6 +116,16 @@ func TestSmallPayload(t *testing.T) {
 
 	if !bytes.Equal(result, plain) {
 		t.Fatalf("round trip mismatch:\ngot:  %q\nwant: %q", result, plain)
+	}
+}
+
+func TestEncryptStreamLength(t *testing.T) {
+	_, pub := generateTestKeypair(t)
+	plain := []byte("data")
+
+	cipher, n := encryptOut(t, plain, [][32]byte{pub})
+	if n != len(cipher) {
+		t.Fatalf("returned length %d does not match written bytes %d", n, len(cipher))
 	}
 }
 
@@ -127,7 +137,7 @@ func TestExact32BytePayload(t *testing.T) {
 		t.Fatalf("test data must be exactly 32 bytes, got %d", len(plain))
 	}
 
-	cipher := encryptOut(t, plain, [][32]byte{pub})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub})
 	result, err := decryptOut(t, cipher, priv, 1, 0)
 	if err != nil {
 		t.Fatalf("DecryptStream: %v", err)
@@ -143,7 +153,7 @@ func TestWrongPrivateKey(t *testing.T) {
 	privB, _ := generateTestKeypair(t)
 
 	plain := []byte("This is a long enough message to avoid the small payload bug")
-	cipher := encryptOut(t, plain, [][32]byte{pubA})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pubA})
 
 	_, err := decryptOut(t, cipher, privB, 1, 0)
 	if err == nil {
@@ -155,7 +165,7 @@ func TestTamperedCiphertext(t *testing.T) {
 	priv, pub := generateTestKeypair(t)
 	plain := []byte("This is a long enough message to avoid the small payload bug")
 
-	cipher := encryptOut(t, plain, [][32]byte{pub})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub})
 
 	cipher[len(cipher)-40] ^= 0x01
 
@@ -169,7 +179,7 @@ func TestTruncatedStream(t *testing.T) {
 	priv, pub := generateTestKeypair(t)
 	plain := []byte("This is a long enough message to avoid the small payload bug")
 
-	cipher := encryptOut(t, plain, [][32]byte{pub})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub})
 
 	truncated := cipher[:len(cipher)-10]
 
@@ -185,7 +195,7 @@ func TestWrongDeviceCount(t *testing.T) {
 	_, pub1 := generateTestKeypair(t)
 
 	plain := []byte("test")
-	cipher := encryptOut(t, plain, [][32]byte{pub0, pub1})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub0, pub1})
 
 	var out bytes.Buffer
 	err := DecryptStream(&out, bytes.NewReader(cipher), priv0, 3, 0)
@@ -199,7 +209,7 @@ func TestTooFewDevices(t *testing.T) {
 	_, pub1 := generateTestKeypair(t)
 
 	plain := []byte("test")
-	cipher := encryptOut(t, plain, [][32]byte{pub0, pub1})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub0, pub1})
 
 	var out bytes.Buffer
 	err := DecryptStream(&out, bytes.NewReader(cipher), priv0, 1, 0)
@@ -220,7 +230,7 @@ func TestNonMultiplePayload(t *testing.T) {
 		t.Fatalf("rand.Read: %v", err)
 	}
 
-	cipher := encryptOut(t, plain, [][32]byte{pub})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub})
 	result, err := decryptOut(t, cipher, priv, 1, 0)
 	if err != nil {
 		t.Fatalf("DecryptStream: %v", err)
@@ -242,7 +252,7 @@ func TestPayloadBetween32And4096(t *testing.T) {
 				t.Fatalf("rand.Read: %v", err)
 			}
 
-			cipher := encryptOut(t, plain, [][32]byte{pub})
+			cipher, _ := encryptOut(t, plain, [][32]byte{pub})
 			result, err := decryptOut(t, cipher, priv, 1, 0)
 			if err != nil {
 				t.Fatalf("DecryptStream: %v", err)
@@ -263,7 +273,7 @@ func TestPayloadExact4096(t *testing.T) {
 		t.Fatalf("rand.Read: %v", err)
 	}
 
-	cipher := encryptOut(t, plain, [][32]byte{pub})
+	cipher, _ := encryptOut(t, plain, [][32]byte{pub})
 	result, err := decryptOut(t, cipher, priv, 1, 0)
 	if err != nil {
 		t.Fatalf("DecryptStream: %v", err)

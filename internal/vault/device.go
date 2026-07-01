@@ -1,6 +1,7 @@
 package vault
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -59,12 +60,34 @@ func readDevices(r io.ReadSeeker) ([]Device, error) {
 	return res, nil
 }
 
-func (v *Vault) AddDevice(publicKey [32]byte, label string) error {
+func (v *Vault) AddDevice(newPublicKey [32]byte, label string, r io.ReaderAt, privateKey [32]byte) error {
+	v.Full = true
 	for _, d := range v.Devices {
 		if d.Name() == label {
 			return fmt.Errorf("Device %s already in vault", label)
 		}
 	}
-	v.Devices = append(v.Devices, newDevice(publicKey, label))
+	v.Devices = append(v.Devices, newDevice(newPublicKey, label))
+	content := make(map[contentKey]Item, len(v.Content))
+	for id, c := range v.Content {
+		if c.content != nil {
+			content[id] = c
+			continue
+		}
+		b, err := v.Read(r, id, privateKey)
+		if err != nil {
+			return err
+		}
+		pass, err := io.ReadAll(b)
+		if err != nil {
+			return err
+		}
+		content[id] = Item{
+			Label:      c.Label,
+			LastUpdate: c.LastUpdate,
+			content:    bytes.NewReader(pass),
+		}
+	}
+	v.Content = content
 	return nil
 }

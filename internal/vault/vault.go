@@ -5,23 +5,36 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/vladislav-atakhanov/pswd/internal/crypto"
+	"github.com/vladislav-atakhanov/pswd/internal/uuid"
 )
+
+type Item struct {
+	Label      string
+	content    io.Reader
+	start      int
+	length     int
+	LastUpdate uint64
+}
+type contentKey = uuid.V4
 
 // Vault Паспорт всего нашего хранилища в RAM
 type Vault struct {
 	Devices []Device
-	Index   []IndexEntry
-	Data    []byte
+	Content map[contentKey]Item
 
-	cursor  int
 	dataEnd int
 	Full    bool
 }
 
-func Open(r io.ReadSeeker, size int) (*Vault, error) {
+func New() *Vault {
+	return new(Vault{
+		Content: make(map[contentKey]Item),
+	})
+
+}
+func Open(r io.ReadSeeker, size int, privateKey [32]byte) (*Vault, error) {
 	if _, err := r.Seek(0, io.SeekStart); err != nil {
 		return nil, err
 	}
@@ -36,12 +49,12 @@ func Open(r io.ReadSeeker, size int) (*Vault, error) {
 	if err != nil {
 		return nil, err
 	}
-	index, err := readIndexes(r)
-	if err != nil {
+	v := new(Vault{Devices: devices,
+		Content: make(map[contentKey]Item),
+	})
+	if err := v.read(r, size, privateKey); err != nil {
 		return nil, err
 	}
-	v := new(Vault{Devices: devices, Index: index})
-	v.dataEnd = size - v.FooterLength()
 	return v, nil
 }
 
@@ -50,13 +63,6 @@ const version_length = 4
 func (v *Vault) HeaderLength() int {
 	res := version_length + 2
 	for _, d := range v.Devices {
-		res += len(d.Bytes())
-	}
-	return res
-}
-func (v *Vault) FooterLength() int {
-	res := 4
-	for _, d := range v.Index {
 		res += len(d.Bytes())
 	}
 	return res
@@ -70,21 +76,20 @@ func readString(file io.ReadSeeker, length int) (string, error) {
 	return string(buf), nil
 }
 
-func (v *Vault) String() string {
-	b := &strings.Builder{}
+func (v *Vault) Print(b io.Writer) error {
 	fmt.Fprintf(b, "Devices (%d):\n", len(v.Devices))
 	for _, d := range v.Devices {
 		key := d.PublicKey()
 		fmt.Fprintf(b, "\t%s %s\n", d.Name(), base64.URLEncoding.EncodeToString(key[:]))
 	}
-	fmt.Fprintf(b, "Index (%d):\n", len(v.Index))
-	for _, i := range v.Index {
-		fmt.Fprintf(b, "\t%s (%d:%d)\n", i.Label(), v.HeaderLength()+i.Start(), i.Length())
+	fmt.Fprintf(b, "Passwords (%d):\n", len(v.Content))
+	for id, i := range v.Content {
+		fmt.Fprintf(b, "\t%s | %s (%d:%d)\n", id.String(), i.Label, i.start, i.length)
 	}
-	return b.String()
+	return nil
 }
 
-func (v *Vault) ReadRange(r io.ReaderAt, out io.Writer, privateKey [32]byte, from, lenght int) error {
+func (v *Vault) decrypt(r io.Reader, out io.Writer, privateKey [32]byte) error {
 	publicKey, err := crypto.PublicKeyFromPrivate(privateKey)
 	if err != nil {
 		return err
@@ -101,8 +106,23 @@ func (v *Vault) ReadRange(r io.ReaderAt, out io.Writer, privateKey [32]byte, fro
 	if index == -1 {
 		return fmt.Errorf("Access denied")
 	}
-	if err := crypto.DecryptStream(out, io.NewSectionReader(r, int64(from), int64(lenght)), privateKey, len(v.Devices), index); err != nil {
+	if err := crypto.DecryptStream(out, r, privateKey, len(v.Devices), index); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (v *Vault) Read(r io.ReaderAt, id contentKey, privateKey [32]byte) (io.Reader, error) {
+	item, ok := v.Content[id]
+	if !ok {
+		return nil, fmt.Errorf("Password %s not found", id.String())
+	}
+	if item.content != nil {
+		return item.content, nil
+	}
+	var buffer bytes.Buffer
+	if err := v.decrypt(io.NewSectionReader(r, int64(v.HeaderLength())+int64(item.start), int64(item.length)), &buffer, privateKey); err != nil {
+		return nil, err
+	}
+	return &buffer, nil
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 
@@ -36,8 +35,9 @@ func initStorage() (*vault.Vault, error) {
 	if err != nil {
 		return nil, err
 	}
-	v := &vault.Vault{Full: true}
-	v.AddDevice(pub, "pc")
+	v := vault.New()
+	priv, err := readKey(private)
+	v.AddDevice(pub, "pc", nil, priv)
 	return v, nil
 }
 func open(name string) (*os.File, int, error) {
@@ -63,24 +63,45 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	v, err := vault.Open(file, size)
+	defer file.Close()
+	priv, err := readKey(private)
+	if err != nil {
+		panic(err)
+	}
+	v, err := vault.Open(file, size, priv)
 	if err != nil {
 		if v, err = initStorage(); err != nil {
 			panic(err)
 		}
 	}
-	defer v.Save(file)
-	// v.Add([]byte("password"), "github")
-	// v.Add([]byte("napojlb"), "youtube")
-	fmt.Println(v.String())
+	defer func() {
+		v.Print(os.Stdout)
+		if err := v.Save(file); err != nil {
+			panic(err)
+		}
+	}()
+	// content := must(v.Read(file, must(uuid.UUIDv4FromString("9fcbb1c4-3dbe-49e3-bd6d-945a359ea6a8")), priv))
+	// fmt.Println(content)
+	// v.Add([]byte("yout"), "youtube")
+	// v.Add([]byte("pass"), "github")
+	for id, i := range v.Content {
+		content := must(v.Read(file, id, priv))
+		fmt.Println(i.Label, "-", content)
+	}
 
-	priv, err := readKey(private)
+	// priv, err := readKey(private)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// var buf bytes.Buffer
+	// if err := v.ReadRange(file, &buf, priv, 158, 115); err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(buf.String())
+}
+func must[T any](v T, err error) T {
 	if err != nil {
 		panic(err)
 	}
-	var buf bytes.Buffer
-	if err := v.ReadRange(file, &buf, priv, 158, 115); err != nil {
-		panic(err)
-	}
-	fmt.Println(buf.String())
+	return v
 }
