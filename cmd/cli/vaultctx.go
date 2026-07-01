@@ -24,10 +24,17 @@ func openVault(cmd *cobra.Command) (*vaultContext, error) {
 	keyPath, _ := cmd.Flags().GetString("key")
 
 	if vaultPath == "" {
-		return nil, fmt.Errorf("flag --vault (-p) is required")
+		vaultPath = os.Getenv("PSWD_VAULT")
 	}
 	if keyPath == "" {
-		return nil, fmt.Errorf("flag --key (-k) is required")
+		keyPath = os.Getenv("PSWD_KEY")
+	}
+
+	if vaultPath == "" {
+		return nil, fmt.Errorf("flag --vault (-p) or PSWD_VAULT environment variable is required")
+	}
+	if keyPath == "" {
+		return nil, fmt.Errorf("flag --key (-k) or PSWD_KEY environment variable is required")
 	}
 
 	data, err := os.ReadFile(keyPath)
