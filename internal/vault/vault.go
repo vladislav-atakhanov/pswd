@@ -19,7 +19,7 @@ type Item struct {
 }
 type contentKey = uuid.V4
 
-// Vault Паспорт всего нашего хранилища в RAM
+// Vault holds the entire vault state in memory
 type Vault struct {
 	Devices []Device
 	content map[contentKey]Item
@@ -46,7 +46,7 @@ func Open(r io.ReadSeeker, size int, privateKey [32]byte) (*Vault, error) {
 		return nil, err
 	}
 	if version != "VLT1" {
-		return nil, fmt.Errorf("Unknown version %s", version)
+		return nil, fmt.Errorf("unknown version: %s", version)
 	}
 	devices, err := readDevices(r)
 	if err != nil {
@@ -107,7 +107,7 @@ func (v *Vault) decrypt(r io.Reader, out io.Writer, privateKey [32]byte) error {
 		}
 	}
 	if index == -1 {
-		return fmt.Errorf("Access denied")
+		return fmt.Errorf("access denied")
 	}
 	if err := crypto.DecryptStream(out, r, privateKey, len(v.Devices), index); err != nil {
 		return err
@@ -118,7 +118,7 @@ func (v *Vault) decrypt(r io.Reader, out io.Writer, privateKey [32]byte) error {
 func (v *Vault) Read(r io.ReaderAt, id contentKey, privateKey [32]byte) (io.Reader, error) {
 	item, ok := v.content[id]
 	if !ok {
-		return nil, fmt.Errorf("Password %s not found", id.String())
+		return nil, fmt.Errorf("password %s not found", id.String())
 	}
 	if item.content != nil {
 		return item.content, nil

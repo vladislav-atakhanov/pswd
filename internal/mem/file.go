@@ -33,7 +33,11 @@ func (f *MemoryFile) ReadAt(p []byte, off int64) (int, error) {
 func (f *MemoryFile) Write(p []byte) (int, error) {
 	end := f.pos + int64(len(p))
 	if end > int64(len(f.data)) {
-		buf := make([]byte, end)
+		newLen := end
+		if cap(f.data) > 0 && newLen < int64(cap(f.data))*2 {
+			newLen = int64(cap(f.data)) * 2
+		}
+		buf := make([]byte, newLen)
 		copy(buf, f.data)
 		f.data = buf
 	}
