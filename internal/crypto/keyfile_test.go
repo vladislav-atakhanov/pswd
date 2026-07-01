@@ -159,7 +159,7 @@ func TestEncryptOutputLength(t *testing.T) {
 		t.Fatalf("EncryptPrivateKey: %v", err)
 	}
 
-	expected := SaltLen + NonceLen + 32 + chacha20poly1305.Overhead
+	expected := SaltLen + VerifierLen + NonceLen + 32 + chacha20poly1305.Overhead
 	if len(encrypted) != expected {
 		t.Fatalf("expected length %d, got %d", expected, len(encrypted))
 	}

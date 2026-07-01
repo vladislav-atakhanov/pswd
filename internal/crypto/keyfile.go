@@ -1,7 +1,10 @@
 package crypto
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
 	"errors"
 	"io"
 
@@ -16,10 +19,23 @@ var (
 )
 
 const (
-	SaltLen  = 16
-	NonceLen = chacha20poly1305.NonceSizeX
-	KeyLen   = 32
+	SaltLen      = 16
+	NonceLen     = chacha20poly1305.NonceSizeX
+	KeyLen       = 32
+	VerifierLen  = 16
+	TotalKeyLen  = KeyLen + VerifierLen
 )
+
+const (
+	oldKeyFileLen = SaltLen + NonceLen + KeyLen + chacha20poly1305.Overhead
+	newKeyFileLen = SaltLen + VerifierLen + NonceLen + KeyLen + chacha20poly1305.Overhead
+)
+
+func computeVerifier(macKey []byte) []byte {
+	mac := hmac.New(sha256.New, macKey)
+	mac.Write([]byte("pswd-keyfile-v1"))
+	return mac.Sum(nil)[:VerifierLen]
+}
 
 func EncryptPrivateKey(priv [32]byte, password []byte) ([]byte, error) {
 	salt := make([]byte, SaltLen)
@@ -27,12 +43,16 @@ func EncryptPrivateKey(priv [32]byte, password []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	derivedKey := argon2.IDKey(password, salt, 3, 64*1024, 4, KeyLen)
-	mem.Lock(derivedKey)
-	defer mem.Unlock(derivedKey)
-	defer mem.ZeroBytes(derivedKey)
+	totalKey := argon2.IDKey(password, salt, 3, 64*1024, 4, TotalKeyLen)
+	mem.Lock(totalKey)
+	defer mem.Unlock(totalKey)
+	defer mem.ZeroBytes(totalKey)
 
-	aead, err := chacha20poly1305.NewX(derivedKey)
+	macKey := totalKey[:VerifierLen]
+	encKey := totalKey[VerifierLen:]
+	verifier := computeVerifier(macKey)
+
+	aead, err := chacha20poly1305.NewX(encKey)
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +64,9 @@ func EncryptPrivateKey(priv [32]byte, password []byte) ([]byte, error) {
 
 	ciphertext := aead.Seal(nil, nonce, priv[:], nil)
 
-	result := make([]byte, 0, SaltLen+len(nonce)+len(ciphertext))
+	result := make([]byte, 0, SaltLen+VerifierLen+len(nonce)+len(ciphertext))
 	result = append(result, salt...)
+	result = append(result, verifier...)
 	result = append(result, nonce...)
 	result = append(result, ciphertext...)
 
@@ -53,10 +74,17 @@ func EncryptPrivateKey(priv [32]byte, password []byte) ([]byte, error) {
 }
 
 func DecryptPrivateKey(data []byte, password []byte) ([32]byte, error) {
-	if len(data) < SaltLen+NonceLen+KeyLen+chacha20poly1305.Overhead {
+	switch len(data) {
+	case oldKeyFileLen:
+		return decryptPrivateKeyV1(data, password)
+	case newKeyFileLen:
+		return decryptPrivateKeyV2(data, password)
+	default:
 		return [32]byte{}, ErrInvalidKeyFile
 	}
+}
 
+func decryptPrivateKeyV1(data []byte, password []byte) ([32]byte, error) {
 	salt := data[:SaltLen]
 	nonce := data[SaltLen : SaltLen+NonceLen]
 	ciphertext := data[SaltLen+NonceLen:]
@@ -67,6 +95,40 @@ func DecryptPrivateKey(data []byte, password []byte) ([32]byte, error) {
 	defer mem.ZeroBytes(derivedKey)
 
 	aead, err := chacha20poly1305.NewX(derivedKey)
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	plaintext, err := aead.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return [32]byte{}, ErrWrongPassword
+	}
+
+	var priv [32]byte
+	copy(priv[:], plaintext)
+	return priv, nil
+}
+
+func decryptPrivateKeyV2(data []byte, password []byte) ([32]byte, error) {
+	salt := data[:SaltLen]
+	storedVerifier := data[SaltLen : SaltLen+VerifierLen]
+	nonce := data[SaltLen+VerifierLen : SaltLen+VerifierLen+NonceLen]
+	ciphertext := data[SaltLen+VerifierLen+NonceLen:]
+
+	totalKey := argon2.IDKey(password, salt, 3, 64*1024, 4, TotalKeyLen)
+	mem.Lock(totalKey)
+	defer mem.Unlock(totalKey)
+	defer mem.ZeroBytes(totalKey)
+
+	macKey := totalKey[:VerifierLen]
+	encKey := totalKey[VerifierLen:]
+	expected := computeVerifier(macKey)
+
+	if subtle.ConstantTimeCompare(expected, storedVerifier) != 1 {
+		return [32]byte{}, ErrWrongPassword
+	}
+
+	aead, err := chacha20poly1305.NewX(encKey)
 	if err != nil {
 		return [32]byte{}, err
 	}
