@@ -1,6 +1,7 @@
 package vault
 
 import (
+	"io"
 	"strings"
 	"testing"
 
@@ -93,5 +94,97 @@ func TestRemoveDevice(t *testing.T) {
 	_, err = Open(mf, mf.Len(), priv1)
 	if err == nil {
 		t.Fatal("expected error opening with removed device, got nil")
+	}
+}
+
+func TestAddDeviceBothCanRead(t *testing.T) {
+	priv1, pub1, err := crypto.GenerateKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+	priv2, pub2, err := crypto.GenerateKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mf := &mem.MemoryFile{}
+
+	// Create vault with device1 and 2 entries
+	v := New()
+	if err := v.InitDevice(pub1, "device1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := v.Add(strings.NewReader("password1"), "entry1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := v.Add(strings.NewReader("password2"), "entry2"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := mf.Seek(0, 0); err != nil {
+		t.Fatal(err)
+	}
+	if err := v.Save(mf); err != nil {
+		t.Fatal(err)
+	}
+
+	// Open with priv1, add device2
+	if _, err := mf.Seek(0, 0); err != nil {
+		t.Fatal(err)
+	}
+	v2, err := Open(mf, mf.Len(), priv1)
+	if err != nil {
+		t.Fatalf("open with priv1: %v", err)
+	}
+	if err := v2.AddDevice(pub2, "device2", mf, priv1); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := mf.Seek(0, 0); err != nil {
+		t.Fatal(err)
+	}
+	if err := v2.Save(mf); err != nil {
+		t.Fatal(err)
+	}
+
+	// Read all entries with priv1
+	if _, err := mf.Seek(0, 0); err != nil {
+		t.Fatal(err)
+	}
+	v3, err := Open(mf, mf.Len(), priv1)
+	if err != nil {
+		t.Fatalf("open with priv1 after AddDevice: %v", err)
+	}
+	for id := range v3.Content {
+		r, err := v3.Read(mf, id, priv1)
+		if err != nil {
+			t.Fatalf("read entry with priv1: %v", err)
+		}
+		_, err = io.ReadAll(r)
+		if err != nil {
+			t.Fatalf("read all with priv1: %v", err)
+		}
+	}
+
+	// Read all entries with priv2
+	if _, err := mf.Seek(0, 0); err != nil {
+		t.Fatal(err)
+	}
+	v4, err := Open(mf, mf.Len(), priv2)
+	if err != nil {
+		t.Fatalf("open with priv2 after AddDevice: %v", err)
+	}
+	expectedLabels := map[string]bool{"entry1": true, "entry2": true}
+	for id, item := range v4.Content {
+		r, err := v4.Read(mf, id, priv2)
+		if err != nil {
+			t.Fatalf("read entry with priv2: %v", err)
+		}
+		_, err = io.ReadAll(r)
+		if err != nil {
+			t.Fatalf("read all with priv2: %v", err)
+		}
+		delete(expectedLabels, item.Label)
+	}
+	if len(expectedLabels) > 0 {
+		t.Fatalf("missing entries: %v", expectedLabels)
 	}
 }
