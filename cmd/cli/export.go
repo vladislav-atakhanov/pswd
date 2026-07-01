@@ -30,6 +30,8 @@ var exportCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("read password: %w", err)
 		}
+		mem.Lock(password)
+		defer mem.Unlock(password)
 		defer mem.ZeroBytes(password)
 
 		priv, err := crypto.DecryptPrivateKey(data, password)

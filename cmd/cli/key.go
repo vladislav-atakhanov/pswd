@@ -28,12 +28,16 @@ var genkeyCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("read password: %w", err)
 		}
+		mem.Lock(password)
+		defer mem.Unlock(password)
 		defer mem.ZeroBytes(password)
 
 		confirm, err := readPassword("Confirm master password: ")
 		if err != nil {
 			return fmt.Errorf("read confirmation: %w", err)
 		}
+		mem.Lock(confirm)
+		defer mem.Unlock(confirm)
 		defer mem.ZeroBytes(confirm)
 
 		if len(password) == 0 {

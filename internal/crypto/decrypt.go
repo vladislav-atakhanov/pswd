@@ -68,6 +68,8 @@ func DecryptStream(out io.Writer, encryptedStream io.Reader, privBytes [32]byte,
 
 	dataKey := make([]byte, 32)
 	cipherKey.XORKeyStream(dataKey, myEncryptedKey)
+	mem.Lock(dataKey)
+	defer mem.Unlock(dataKey)
 	defer mem.ZeroBytes(dataKey)
 
 	// Теперь, когда у нас есть dataKey, мы можем запустить валидный HMAC!

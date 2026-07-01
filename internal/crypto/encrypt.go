@@ -29,6 +29,8 @@ func EncryptStream(out io.Writer, plainText io.Reader, publicKeys [][32]byte) (i
 	if _, err := io.ReadFull(rand.Reader, dataKey); err != nil {
 		return 0, err
 	}
+	mem.Lock(dataKey)
+	defer mem.Unlock(dataKey)
 	defer mem.ZeroBytes(dataKey)
 
 	ephemeralPriv, err := ecdh.X25519().GenerateKey(rand.Reader)

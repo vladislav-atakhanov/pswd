@@ -23,6 +23,8 @@ func EncryptPrivateKey(priv [32]byte, password []byte) ([]byte, error) {
 	}
 
 	derivedKey := argon2.IDKey(password, salt, 3, 64*1024, 4, KeyLen)
+	mem.Lock(derivedKey)
+	defer mem.Unlock(derivedKey)
 	defer mem.ZeroBytes(derivedKey)
 
 	aead, err := chacha20poly1305.NewX(derivedKey)
@@ -55,6 +57,8 @@ func DecryptPrivateKey(data []byte, password []byte) ([32]byte, error) {
 	ciphertext := data[SaltLen+NonceLen:]
 
 	derivedKey := argon2.IDKey(password, salt, 3, 64*1024, 4, KeyLen)
+	mem.Lock(derivedKey)
+	defer mem.Unlock(derivedKey)
 	defer mem.ZeroBytes(derivedKey)
 
 	aead, err := chacha20poly1305.NewX(derivedKey)

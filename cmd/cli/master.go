@@ -28,6 +28,8 @@ var masterCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("read current password: %w", err)
 		}
+		mem.Lock(oldPassword)
+		defer mem.Unlock(oldPassword)
 		defer mem.ZeroBytes(oldPassword)
 
 		priv, err := crypto.DecryptPrivateKey(data, oldPassword)
@@ -40,12 +42,16 @@ var masterCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("read new password: %w", err)
 		}
+		mem.Lock(newPassword)
+		defer mem.Unlock(newPassword)
 		defer mem.ZeroBytes(newPassword)
 
 		confirm, err := readPassword("Confirm new master password: ")
 		if err != nil {
 			return fmt.Errorf("read confirmation: %w", err)
 		}
+		mem.Lock(confirm)
+		defer mem.Unlock(confirm)
 		defer mem.ZeroBytes(confirm)
 
 		if len(newPassword) == 0 {

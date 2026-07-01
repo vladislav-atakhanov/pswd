@@ -37,6 +37,8 @@ func openVault(cmd *cobra.Command) (*vaultContext, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read password: %w", err)
 	}
+	mem.Lock(password)
+	defer mem.Unlock(password)
 	defer mem.ZeroBytes(password)
 
 	priv, err := crypto.DecryptPrivateKey(data, password)
