@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -72,6 +74,14 @@ func openVault(cmd *cobra.Command) (*vaultContext, error) {
 func closeVault(ctx *vaultContext) {
 	ctx.File.Close()
 	mem.ZeroArray32(&ctx.Priv)
+}
+
+func confirm(prompt string) bool {
+	fmt.Print(prompt)
+	reader := bufio.NewReader(os.Stdin)
+	line, _ := reader.ReadString('\n')
+	line = strings.TrimSpace(strings.ToLower(line))
+	return line == "y" || line == "yes"
 }
 
 func withVault(run func(ctx *vaultContext, args []string) error) func(*cobra.Command, []string) error {

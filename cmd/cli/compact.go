@@ -12,6 +12,11 @@ var compactCmd = &cobra.Command{
 	Long:  "Re-encrypt all content in-memory, clear orphaned spans, and rewrite the vault file.",
 	Args:  cobra.NoArgs,
 	RunE: withVault(func(ctx *vaultContext, args []string) error {
+		if !confirm("Are you sure you want to rewrite the entire vault? [y/N]: ") {
+			fmt.Println("Canceled")
+			return nil
+		}
+
 		if err := ctx.Vault.Compact(ctx.File, ctx.Priv); err != nil {
 			return fmt.Errorf("compact vault: %w", err)
 		}

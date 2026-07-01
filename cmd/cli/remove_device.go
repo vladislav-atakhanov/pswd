@@ -22,6 +22,19 @@ var removeDeviceCmd = &cobra.Command{
 		var pub [32]byte
 		copy(pub[:], raw)
 
+		name := hex.EncodeToString(raw)
+		for _, d := range ctx.Vault.Devices {
+			if d.PublicKey() == pub {
+				name = d.Name()
+				break
+			}
+		}
+
+		if !confirm(fmt.Sprintf("Remove device %q? [y/N]: ", name)) {
+			fmt.Println("Canceled")
+			return nil
+		}
+
 		if err := ctx.Vault.RemoveDevice(pub, ctx.File, ctx.Priv); err != nil {
 			return fmt.Errorf("remove device: %w", err)
 		}

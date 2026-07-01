@@ -24,6 +24,19 @@ var removeCmd = &cobra.Command{
 		var id uuid.V4
 		copy(id[:], raw)
 
+		label := id.String()
+		for _, e := range ctx.Vault.List() {
+			if e.ID == id {
+				label = e.Label
+				break
+			}
+		}
+
+		if !confirm(fmt.Sprintf("Remove password %q? [y/N]: ", label)) {
+			fmt.Println("Canceled")
+			return nil
+		}
+
 		if err := ctx.Vault.Remove(id); err != nil {
 			return fmt.Errorf("remove password: %w", err)
 		}
