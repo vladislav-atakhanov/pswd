@@ -59,9 +59,11 @@ func openVault(cmd *cobra.Command) (*vaultContext, error) {
 		}
 		return nil, fmt.Errorf("decrypt private key: %w", err)
 	}
+	mem.Lock(priv[:])
 
 	file, err := os.OpenFile(vaultPath, os.O_RDWR, 0666)
 	if err != nil {
+		mem.Unlock(priv[:])
 		mem.ZeroArray32(&priv)
 		return nil, fmt.Errorf("open vault: %w", err)
 	}
@@ -69,6 +71,7 @@ func openVault(cmd *cobra.Command) (*vaultContext, error) {
 	stat, err := file.Stat()
 	if err != nil {
 		file.Close()
+		mem.Unlock(priv[:])
 		mem.ZeroArray32(&priv)
 		return nil, err
 	}
@@ -76,6 +79,7 @@ func openVault(cmd *cobra.Command) (*vaultContext, error) {
 	v, err := vault.Open(file, int(stat.Size()), priv)
 	if err != nil {
 		file.Close()
+		mem.Unlock(priv[:])
 		mem.ZeroArray32(&priv)
 		if errors.Is(err, vault.ErrAccessDenied) {
 			return nil, fmt.Errorf("access denied: your key is not authorized for this vault")
@@ -88,6 +92,7 @@ func openVault(cmd *cobra.Command) (*vaultContext, error) {
 
 func closeVault(ctx *vaultContext) {
 	ctx.File.Close()
+	mem.Unlock(ctx.Priv[:])
 	mem.ZeroArray32(&ctx.Priv)
 }
 

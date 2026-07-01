@@ -28,6 +28,7 @@ func EncryptStream(out io.Writer, plainText io.Reader, publicKeys [][32]byte) (i
 	if err != nil {
 		return 0, err
 	}
+	defer mem.ZeroBytes(plain)
 
 	dataKey := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, dataKey); err != nil {

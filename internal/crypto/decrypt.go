@@ -34,6 +34,9 @@ func DecryptStream(out io.Writer, encryptedStream io.Reader, privBytes [32]byte,
 	if err != nil {
 		return fmt.Errorf("ECDH: %w", err)
 	}
+	mem.Lock(sharedSecret)
+	defer mem.Unlock(sharedSecret)
+	defer mem.ZeroBytes(sharedSecret)
 
 	var numDevices uint16
 	if err := binary.Read(encryptedStream, binary.BigEndian, &numDevices); err != nil {

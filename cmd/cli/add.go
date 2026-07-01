@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -30,7 +30,7 @@ var addCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			plain = strings.NewReader(string(p1))
+			plain = bytes.NewReader(p1)
 		}
 
 		if err := ctx.Vault.Add(plain, label); err != nil {

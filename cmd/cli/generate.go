@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rand"
 	"fmt"
 	"math/big"
-	"strings"
 
 	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
@@ -44,7 +44,7 @@ var generateCmd = &cobra.Command{
 		}
 		defer mem.ZeroBytes(password)
 
-		if err := ctx.Vault.Add(strings.NewReader(string(password)), label); err != nil {
+		if err := ctx.Vault.Add(bytes.NewReader(password), label); err != nil {
 			return fmt.Errorf("add password: %w", err)
 		}
 		if err := ctx.Vault.Save(ctx.File); err != nil {
