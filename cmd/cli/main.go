@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 
 	"golang.org/x/term"
@@ -67,10 +66,9 @@ var rootCmd = &cobra.Command{
 		clip, _ := cmd.Flags().GetBool("clip")
 		if clip {
 			firstLine, _, _ := strings.Cut(string(content), "\n")
-			if err := clipboard.WriteAll(firstLine); err != nil {
+			if err := clipboardWrite(firstLine); err != nil {
 				return fmt.Errorf("clipboard: %w", err)
 			}
-			fmt.Println("Password copied to clipboard")
 			return nil
 		}
 
@@ -87,8 +85,14 @@ func init() {
 
 func main() {
 	rootCmd.AddCommand(genkeyCmd, exportCmd, masterCmd, initCmd, addDeviceCmd, infoCmd, addCmd, searchCmd, removeCmd, renameCmd, compactCmd, removeDeviceCmd, generateCmd)
-	if err := rootCmd.Execute(); err != nil {
+
+	ctx := trapSignals()
+	exitCode := 0
+	defer func() { os.Exit(exitCode) }()
+
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		exitCode = 1
+		return
 	}
 }
