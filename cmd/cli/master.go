@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 
@@ -38,28 +37,9 @@ var masterCmd = &cobra.Command{
 		}
 		defer mem.ZeroArray32(&priv)
 
-		newPassword, err := readPassword("Enter new master password: ")
+		newPassword, err := readNewPassword("Enter new master password: ", "Confirm new master password: ")
 		if err != nil {
-			return fmt.Errorf("read new password: %w", err)
-		}
-		mem.Lock(newPassword)
-		defer mem.Unlock(newPassword)
-		defer mem.ZeroBytes(newPassword)
-
-		confirm, err := readPassword("Confirm new master password: ")
-		if err != nil {
-			return fmt.Errorf("read confirmation: %w", err)
-		}
-		mem.Lock(confirm)
-		defer mem.Unlock(confirm)
-		defer mem.ZeroBytes(confirm)
-
-		if len(newPassword) == 0 {
-			return fmt.Errorf("password cannot be empty")
-		}
-
-		if !bytes.Equal(newPassword, confirm) {
-			return fmt.Errorf("passwords do not match")
+			return err
 		}
 
 		encrypted, err := crypto.EncryptPrivateKey(priv, newPassword)

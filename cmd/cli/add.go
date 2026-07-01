@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -27,19 +26,9 @@ var addCmd = &cobra.Command{
 			defer f.Close()
 			plain = f
 		} else {
-			p1, err := readPassword("Enter password: ")
+			p1, err := readNewPassword("Enter password: ", "Confirm password: ")
 			if err != nil {
-				return fmt.Errorf("read password: %w", err)
-			}
-			if len(p1) == 0 {
-				return fmt.Errorf("password cannot be empty")
-			}
-			p2, err := readPassword("Confirm password: ")
-			if err != nil {
-				return fmt.Errorf("read confirmation: %w", err)
-			}
-			if !bytes.Equal(p1, p2) {
-				return fmt.Errorf("passwords do not match")
+				return err
 			}
 			plain = strings.NewReader(string(p1))
 		}

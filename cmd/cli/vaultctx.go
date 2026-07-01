@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -81,6 +83,36 @@ func openVault(cmd *cobra.Command) (*vaultContext, error) {
 func closeVault(ctx *vaultContext) {
 	ctx.File.Close()
 	mem.ZeroArray32(&ctx.Priv)
+}
+
+func readNewPassword(prompt1, prompt2 string) ([]byte, error) {
+	p1, err := readPassword(prompt1)
+	if err != nil {
+		return nil, fmt.Errorf("read password: %w", err)
+	}
+	mem.Lock(p1)
+	defer mem.Unlock(p1)
+	defer mem.ZeroBytes(p1)
+
+	if len(p1) == 0 {
+		return nil, errors.New("password cannot be empty")
+	}
+
+	p2, err := readPassword(prompt2)
+	if err != nil {
+		return nil, fmt.Errorf("read confirmation: %w", err)
+	}
+	mem.Lock(p2)
+	defer mem.Unlock(p2)
+	defer mem.ZeroBytes(p2)
+
+	if !bytes.Equal(p1, p2) {
+		return nil, errors.New("passwords do not match")
+	}
+
+	result := make([]byte, len(p1))
+	copy(result, p1)
+	return result, nil
 }
 
 func confirm(prompt string) bool {

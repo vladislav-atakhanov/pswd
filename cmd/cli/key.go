@@ -1,14 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/vladislav-atakhanov/pswd/internal/crypto"
-	"github.com/vladislav-atakhanov/pswd/internal/mem"
 )
 
 var genkeyCmd = &cobra.Command{
@@ -24,28 +22,9 @@ var genkeyCmd = &cobra.Command{
 			return fmt.Errorf("generate keys: %w", err)
 		}
 
-		password, err := readPassword("Enter master password: ")
+		password, err := readNewPassword("Enter master password: ", "Confirm master password: ")
 		if err != nil {
-			return fmt.Errorf("read password: %w", err)
-		}
-		mem.Lock(password)
-		defer mem.Unlock(password)
-		defer mem.ZeroBytes(password)
-
-		confirm, err := readPassword("Confirm master password: ")
-		if err != nil {
-			return fmt.Errorf("read confirmation: %w", err)
-		}
-		mem.Lock(confirm)
-		defer mem.Unlock(confirm)
-		defer mem.ZeroBytes(confirm)
-
-		if len(password) == 0 {
-			return fmt.Errorf("password cannot be empty")
-		}
-
-		if !bytes.Equal(password, confirm) {
-			return fmt.Errorf("passwords do not match")
+			return err
 		}
 
 		encrypted, err := crypto.EncryptPrivateKey(priv, password)
