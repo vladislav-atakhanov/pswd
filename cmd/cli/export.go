@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 
 	"github.com/vladislav-atakhanov/pswd/internal/crypto"
@@ -54,7 +55,17 @@ var exportCmd = &cobra.Command{
 		buf = append(buf, length[:]...)
 		buf = append(buf, nameBytes...)
 
-		fmt.Println(base64.URLEncoding.EncodeToString(buf))
+		token := base64.URLEncoding.EncodeToString(buf)
+		clip, _ := cmd.Flags().GetBool("clip")
+		if clip {
+			if err := clipboard.WriteAll(token); err != nil {
+				return fmt.Errorf("clipboard: %w", err)
+			}
+			fmt.Println("Token copied to clipboard")
+			return nil
+		}
+
+		fmt.Println(token)
 
 		return nil
 	},

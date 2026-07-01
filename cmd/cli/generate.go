@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 	"github.com/vladislav-atakhanov/pswd/internal/mem"
 )
@@ -16,7 +17,13 @@ var generateCmd = &cobra.Command{
 	Use:   "generate <label> [length]",
 	Short: "Generate a random password and add it to the vault",
 	Args:  cobra.RangeArgs(1, 2),
-	RunE: withVault(func(ctx *vaultContext, args []string) error {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx, err := openVault(cmd)
+		if err != nil {
+			return err
+		}
+		defer closeVault(ctx)
+
 		label := args[0]
 
 		length := 24
@@ -44,7 +51,16 @@ var generateCmd = &cobra.Command{
 			return fmt.Errorf("save vault: %w", err)
 		}
 
+		clip, _ := cmd.Flags().GetBool("clip")
+		if clip {
+			if err := clipboard.WriteAll(string(password)); err != nil {
+				return fmt.Errorf("clipboard: %w", err)
+			}
+			fmt.Printf("Password generated with label %s and copied to clipboard\n", label)
+			return nil
+		}
+
 		fmt.Printf("Password generated with label %s\n%s\n", label, string(password))
 		return nil
-	}),
+	},
 }
