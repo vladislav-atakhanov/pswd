@@ -74,6 +74,7 @@ func (v *Vault) saveBody(w io.Writer) error {
 type Writer interface {
 	io.Seeker
 	io.Writer
+	Truncate(int64) error
 }
 
 func (v *Vault) Save(w Writer) error {
@@ -112,10 +113,8 @@ func (v *Vault) Save(w Writer) error {
 	if err != nil {
 		return err
 	}
-	if f, ok := w.(interface{ Truncate(int64) error }); ok {
-		if err := f.Truncate(pos); err != nil {
-			return err
-		}
+	if err := w.Truncate(pos); err != nil {
+		return err
 	}
 
 	return nil
